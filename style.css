@@ -17,3 +17,36 @@
 .photo-controls #pause{min-width:76px;font-weight:600}
 @media(max-width:1023px){.timeline{grid-template-columns:repeat(3,1fr);gap:16px}}
 @media(max-width:640px){.timeline{grid-template-columns:1fr 1fr;gap:12px}}
+
+/* V3 신규 스타일: 상단 신고접수, 출동대 3단 카드, 작성자 연락처, 기호 컨트롤 */
+.header-received{font-size:14px;color:#fff;background:rgba(255,255,255,0.18);padding:4px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:6px}
+.header-received small{font-size:12px;opacity:.9}
+.header-received strong{font-size:14px;font-variant-numeric:tabular-nums;color:#FFE58F}
+.high-contrast .header-received{background:var(--muted);color:var(--fg)}
+.high-contrast .header-received strong{color:var(--warning)}
+
+.photo-controls button{font-size:16px;min-width:44px;height:44px;padding:0 8px;display:inline-flex;align-items:center;justify-content:center}
+.photo-controls #pause{min-width:44px;font-size:15px}
+
+.crew-highlight-panel{margin:24px 0 32px;border-left:5px solid var(--primary)}
+.crew-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px}
+.crew-card{background:var(--muted);border:1px solid var(--border);border-radius:8px;padding:16px 20px}
+.crew-card h4{margin:0 0 8px;font-size:16px;color:var(--navy);font-weight:700}
+.high-contrast .crew-card h4{color:var(--primary)}
+.crew-card p{margin:0;font-size:15px;color:var(--fg);line-height:1.5}
+.agency-note{margin-top:16px;background:var(--canvas);border:1px solid var(--border);border-radius:8px;padding:12px 16px}
+.agency-note strong{display:block;font-size:13px;color:var(--fg2);margin-bottom:4px}
+.agency-note p{margin:0;font-size:15px;color:var(--fg)}
+
+.author-info{display:inline-flex;align-items:center;gap:12px;flex-wrap:wrap}
+.phone-link{color:var(--link);text-decoration:none;font-size:14px;padding:4px 10px;background:var(--muted);border-radius:4px;border:1px solid var(--border)}
+.phone-link:hover{background:var(--selected);text-decoration:underline}
+
+@media(max-width:1023px){
+  .crew-grid{grid-template-columns:1fr}
+  .timeline{grid-template-columns:repeat(3,1fr);gap:16px}
+}
+@media(max-width:640px){
+  .timeline{grid-template-columns:1fr 1fr;gap:12px}
+  .header-received{font-size:12px;padding:3px 8px}
+}
