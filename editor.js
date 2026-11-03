@@ -1,9 +1,8 @@
 (async()=>{
 'use strict';
-const $=id=>document.getElementById(id),key='gyeryong-field-text-v1:'+location.pathname.replace(/[^/]*$/,'');
+const $=id=>document.getElementById(id),key='gyeryong-field-text-v2:'+location.pathname.replace(/[^/]*$/,'');
 const ghKey='gyeryong-gh-config-v1';
 
-// 모달 제어 함수 (호환성 100% div 레이어)
 function openGhModal(){
   const saved=JSON.parse(localStorage.getItem(ghKey)||'{}');
   $('ghRepo').value=saved.repo||'hyeonjunyi/Emergency_Report';
@@ -17,7 +16,6 @@ function closeGhModal(){
   if(m)m.style.display='none';
 }
 
-// 버튼 클릭 이벤트 조기 바인딩 (초기화 중단 방지)
 if($('ghConfigBtn'))$('ghConfigBtn').onclick=openGhModal;
 if($('ghCloseBtn'))$('ghCloseBtn').onclick=closeGhModal;
 if($('ghSaveBtn'))$('ghSaveBtn').onclick=()=>{
@@ -32,37 +30,37 @@ if($('ghSaveBtn'))$('ghSaveBtn').onclick=()=>{
 };
 
 const groups=[
-  ['01 · 기본정보',[
+  ['01 · 기본정보 및 상단 핵심현황',[
     ['title','보고서 제목'],
-    ['date','발생일','date'],
-    ['address','발생장소'],
-    ['kind','화재 분류'],
-    ['status','현재 상태 (예: 진압 중, 완진 등)'],
-    ['updated','보고 기준시각 (한국시간)'],
-    ['unit','소속'],
-    ['author','작성자'],
+    ['date','발생시각'],
+    ['received','신고 접수시각 (상단 헤더 표시)'],
+    ['dispatch','출동 지령시각'],
+    ['arrival','선착대 도착시각'],
+    ['injury','인명피해 현황'],
+    ['status','현재 대응상태 (예: 진압 중, 완진 등)'],
+    ['updated','보고 기준시각 (자동 작성)'],
+    ['unit','소속 기관'],
+    ['author','작성자 성명/직급'],
     ['phone','작성자 연락처']
   ]],
   ['02 · 출동대 현황 (선착대 / 추가출동대 / 타서 지원출동)',[
-    ['first_crew','선착대 현황'],
-    ['extra_crew','추가출동대 현황'],
-    ['support_crew','타서 지원출동 현황'],
-    ['agency','유관기관 공동대응']
+    ['first_crew','선착대 현황','textarea'],
+    ['extra_crew','추가출동대 현황','textarea'],
+    ['support_crew','타서 지원출동 현황','textarea'],
+    ['agency','유관기관 공동대응 현황','textarea']
   ]],
-  ['03 · 대상 상세 및 현장상황',[
+  ['03 · 대상 상세 및 초기 현장상황',[
+    ['address','발생장소'],
+    ['kind','화재 분류'],
     ['target','화재대상'],
     ['vehicle','대상 상세정보 (차종·연료·건물구조 등)','textarea'],
-    ['situation','현장 확인사항 및 진압 활동','textarea'],
-    ['checks','추가 확인사항 (인명검색, 연소확대 등)','textarea']
+    ['situation','초기 현장 확인사항 및 진압 활동','textarea'],
+    ['checks','추가 확인사항 (인명검색, 연소확대 방지 등)','textarea']
   ]],
   ['04 · 대응 경과(타임라인) 및 피해조사',[
-    ['received','신고 접수시각'],
-    ['dispatch','출동 지령시각'],
-    ['arrival','선착대 도착시각'],
-    ['commander_arrival','지휘팀 도착시각'],
-    ['knockdown','초진시각'],
-    ['out','완진시각'],
-    ['injury','인명피해 현황'],
+    ['commander_arrival','지휘팀 현장도착 시각'],
+    ['knockdown','초진 시각'],
+    ['out','완진 시각'],
     ['damage','대상 피해내역'],
     ['loss','재산피해 추정액'],
     ['origin','발화지점'],
@@ -82,22 +80,33 @@ function now(){
 
 function changed(){
   $('reviewed').checked=false;
+  // Automatically update updated time to current time on any change
+  if($('f-updated')) $('f-updated').value = now();
   const d=collect();
+  if($('topReceived') && d.received) $('topReceived').textContent = d.received;
   delete d.photos;
   try{localStorage.setItem(key,JSON.stringify(d));}catch{msg('임시 저장 공간이 부족합니다. 초안 백업을 저장하세요.');}
 }
 
 function collect(){
   return Object.fromEntries([
-    ...names.map(k=>[k,$('f-'+k).value]),
+    ...names.map(k=>[k,$('f-'+k)?$('f-'+k).value:'']),
     ['photos',photos.map(p=>({...p}))]
   ]);
 }
 
 function fill(d){
   names.forEach(k=>{
-    $('f-'+k).value=typeof d[k]==='string'?d[k]:'';
+    if($('f-'+k)){
+      // If loading or fresh, auto-update updated time to current time
+      if(k === 'updated') {
+        $('f-'+k).value = now();
+      } else {
+        $('f-'+k).value = typeof d[k]==='string'?d[k]:(sample&&sample[k]?sample[k]:'');
+      }
+    }
   });
+  if($('topReceived') && d.received) $('topReceived').textContent = d.received;
   photos=Array.isArray(d.photos)
     ?d.photos.filter(p=>p&&typeof p.caption==='string'&&FieldReport.safePhoto(p.src)).slice(0,8)
     :[];
@@ -107,15 +116,16 @@ function fill(d){
 
 function fresh(){
   const d={
+    title:'화재 초기 현장상황보고',
     unit:'계룡소방서 현장대응단',
     author:'현장대응단 소방장 이현준',
     phone:'010-4200-9870',
-    date:now().slice(0,10),
+    date:now(),
     updated:now(),
     status:'진압 중',
     photos:[]
   };
-  ['injury','arrival','commander_arrival','received','dispatch','damage','first_crew','extra_crew','support_crew','agency','target','knockdown','out','checks'].forEach(k=>d[k]='확인 중');
+  ['injury','arrival','commander_arrival','received','dispatch','damage','first_crew','extra_crew','support_crew','agency','target','knockdown','out','checks','address','kind','vehicle','situation'].forEach(k=>d[k]='확인 중');
   ['cause','origin'].forEach(k=>d[k]='조사 중');
   d.loss='산정 중';
   fill(d);
@@ -199,6 +209,8 @@ async function embedded(d){
 }
 
 function html(d){
+  // Ensure updated time is fresh when exporting/previewing
+  d.updated = now();
   const json=JSON.stringify(d).replace(/</g,'\\u003c');
   return '<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>'+(d.title||'화재')+' 초기 현장상황보고</title><style>'+css+'</style></head><body><div id="report"></div><script>'+reportCode+'\nFieldReport.mount('+json+');<\/script></body></html>';
 }
@@ -217,7 +229,6 @@ async function run(fn){
   }
 }
 
-// GitHub REST API Direct Publish function
 async function publishToGitHub(docHtml){
   const confStr=localStorage.getItem(ghKey);
   if(!confStr){
@@ -229,7 +240,7 @@ async function publishToGitHub(docHtml){
     openGhModal();
     throw Error('GitHub 저장소명과 Token이 입력되지 않았습니다.');
   }
-  msg('GitHub에 연결 중입니다. 기존 index.html 확인 중...');
+  msg('GitHub 저장소와 통신 중입니다. 기존 파일 확인 중...');
 
   const cleanRepo=conf.repo.trim().replace(/^https?:\/\/github\.com\//,'').replace(/\/$/,'');
   const branch=(conf.branch||'main').trim();
@@ -259,7 +270,7 @@ async function publishToGitHub(docHtml){
   const b64Content=btoa(bin);
 
   const payload={
-    message:`화재 현장보고 실시간 배포 갱신 (${$('f-title').value||'초기보고'})`,
+    message:`화재 현장보고 실시간 갱신 (${$('f-title').value||'현장보고'})`,
     content:b64Content,
     branch:branch
   };
@@ -281,7 +292,7 @@ async function publishToGitHub(docHtml){
     throw Error('GitHub 업로드 실패: '+(errData.message||res.statusText));
   }
 
-  msg('🎉 GitHub 저장소에 즉시 배포되었습니다! 약 1분 후 GitHub Pages 주소에서 확인하실 수 있습니다.');
+  msg('🎉 GitHub 저장소에 성공적으로 배포되었습니다! 약 1분 후 GitHub Pages에서 최신 보고서를 확인하세요.');
 }
 
 try{
@@ -318,8 +329,11 @@ groups.forEach(([title,fields])=>{
 let saved;try{saved=JSON.parse(localStorage.getItem(key));}catch{};
 if(saved&&typeof saved==='object'){
   fill(saved);
-  msg('이 브라우저에 임시 저장된 내용을 복원했습니다.');
+  msg('임시 저장된 내용을 불러왔습니다.');
 }else fill(sample);
+
+// Ensure updated is current time on start
+if($('f-updated')) $('f-updated').value = now();
 
 $('new').onclick=()=>{
   if(confirm('현재 입력 내용을 비우고 새 사건을 시작할까요? 필요한 초안은 먼저 백업하세요.')){
@@ -329,9 +343,9 @@ $('new').onclick=()=>{
 };
 
 $('sample').onclick=()=>{
-  if(confirm('현재 내용을 기본 샘플 보고서로 바꿀까요?')){
+  if(confirm('현재 내용을 기본 샘플 보고서로 복원할까요?')){
     fill(sample);
-    msg('샘플 보고서를 불러왔습니다.');
+    msg('기본 서식을 불러왔습니다.');
   }
 };
 
@@ -355,7 +369,7 @@ $('preview').onclick=()=>run(async()=>{
   $('previewFrame').srcdoc=html(collect());
   $('previewArea').hidden=false;
   $('previewArea').scrollIntoView({behavior:'smooth'});
-  msg('아래에서 자동 로테이션과 대응 경과 타임라인을 확인하세요.');
+  msg('아래에서 자동 롤링(◀ ⏸ ▶)과 신규 타임라인을 확인하세요.');
 });
 
 $('close').onclick=()=>{$('previewArea').hidden=true;};
@@ -366,7 +380,7 @@ $('export').onclick=()=>run(async()=>{
   const doc=html(await embedded(collect()));
   if(new Blob([doc]).size>20*1024*1024)throw Error('게시 파일이 20MB를 초과합니다. 사진 수를 조정해 주세요.');
   download(doc,'text/html;charset=utf-8','index.html');
-  msg('index.html을 저장했습니다. GitHub 저장소의 index.html을 교체하여 푸시하세요.');
+  msg('index.html을 저장했습니다. 저장소의 index.html을 교체하여 푸시하세요.');
 });
 
 $('publishGh').onclick=()=>run(async()=>{
@@ -379,7 +393,7 @@ $('publishGh').onclick=()=>run(async()=>{
 
 $('backup').onclick=()=>run(async()=>{
   download(JSON.stringify(await embedded(collect()),null,2),'application/json','fire-draft-'+(collect().date||'undated')+'.json');
-  msg('사진을 포함한 전체 초안 백업(.json)을 저장했습니다.');
+  msg('전체 초안 백업(.json)을 저장했습니다.');
 });
 
 $('restore').onchange=()=>run(async()=>{
