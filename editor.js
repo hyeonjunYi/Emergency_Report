@@ -3,6 +3,34 @@
 const $=id=>document.getElementById(id),key='gyeryong-field-text-v1:'+location.pathname.replace(/[^/]*$/,'');
 const ghKey='gyeryong-gh-config-v1';
 
+// 모달 제어 함수 (호환성 100% div 레이어)
+function openGhModal(){
+  const saved=JSON.parse(localStorage.getItem(ghKey)||'{}');
+  $('ghRepo').value=saved.repo||'hyeonjunyi/Emergency_Report';
+  $('ghBranch').value=saved.branch||'main';
+  $('ghToken').value=saved.token||'';
+  const m=$('ghModal');
+  if(m)m.style.display='flex';
+}
+function closeGhModal(){
+  const m=$('ghModal');
+  if(m)m.style.display='none';
+}
+
+// 버튼 클릭 이벤트 조기 바인딩 (초기화 중단 방지)
+if($('ghConfigBtn'))$('ghConfigBtn').onclick=openGhModal;
+if($('ghCloseBtn'))$('ghCloseBtn').onclick=closeGhModal;
+if($('ghSaveBtn'))$('ghSaveBtn').onclick=()=>{
+  const conf={
+    repo:$('ghRepo').value.trim(),
+    branch:$('ghBranch').value.trim()||'main',
+    token:$('ghToken').value.trim()
+  };
+  localStorage.setItem(ghKey,JSON.stringify(conf));
+  closeGhModal();
+  msg('GitHub 연동 정보가 저장되었습니다. 이제 [GitHub 즉시 배포]를 누르면 자동 반영됩니다.');
+};
+
 const groups=[
   ['01 · 기본정보',[
     ['title','보고서 제목'],
@@ -193,11 +221,14 @@ async function run(fn){
 async function publishToGitHub(docHtml){
   const confStr=localStorage.getItem(ghKey);
   if(!confStr){
-    $('ghModal').showModal();
+    openGhModal();
     throw Error('GitHub 연동 설정이 필요합니다. 저장소 및 토큰 정보를 입력해 주세요.');
   }
   const conf=JSON.parse(confStr);
-  if(!conf.repo||!conf.token)throw Error('GitHub 저장소명과 Token이 입력되지 않았습니다.');
+  if(!conf.repo||!conf.token){
+    openGhModal();
+    throw Error('GitHub 저장소명과 Token이 입력되지 않았습니다.');
+  }
   msg('GitHub에 연결 중입니다. 기존 index.html 확인 중...');
 
   const cleanRepo=conf.repo.trim().replace(/^https?:\/\/github\.com\//,'').replace(/\/$/,'');
@@ -345,27 +376,6 @@ $('publishGh').onclick=()=>run(async()=>{
   if(new Blob([doc]).size>20*1024*1024)throw Error('게시 파일이 20MB를 초과합니다. 사진 수를 조정해 주세요.');
   await publishToGitHub(doc);
 });
-
-$('ghConfigBtn').onclick=()=>{
-  const saved=JSON.parse(localStorage.getItem(ghKey)||'{}');
-  $('ghRepo').value=saved.repo||'hyeonjunyi/Emergency_Report';
-  $('ghBranch').value=saved.branch||'main';
-  $('ghToken').value=saved.token||'';
-  $('ghModal').showModal();
-};
-
-$('ghCloseBtn').onclick=()=>{$('ghModal').close();};
-
-$('ghSaveBtn').onclick=()=>{
-  const conf={
-    repo:$('ghRepo').value.trim(),
-    branch:$('ghBranch').value.trim()||'main',
-    token:$('ghToken').value.trim()
-  };
-  localStorage.setItem(ghKey,JSON.stringify(conf));
-  $('ghModal').close();
-  msg('GitHub 연동 정보가 브라우저에 저장되었습니다. 이제 [GitHub 즉시 배포]를 누르시면 자동으로 업로드됩니다.');
-};
 
 $('backup').onclick=()=>run(async()=>{
   download(JSON.stringify(await embedded(collect()),null,2),'application/json','fire-draft-'+(collect().date||'undated')+'.json');

@@ -1,1 +1,100 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>현장보고 작성 | 현장대응단</title><link rel="stylesheet" href="editor.css"></head><body><a class="skip-link" href="#main">본문 바로가기</a><header><b>현장대응단 · 화재조사</b><button type="button" data-contrast>선명한 화면</button><a href="index.html" target="_blank" rel="noopener">현재 보고서 보기</a></header><main id="main"><p class="eyebrow">화재조사 업무</p><h2 class="page-title">화재조사 현장보고 작성</h2><p class="lead">내용 입력 → 사진 선택 → 전체 미리보기 → 즉시 GitHub 배포 또는 파일 저장</p><div class="notice">입력 내용은 이 휴대폰 브라우저에 임시 저장됩니다. 사진은 임시 저장되지 않으므로 자리를 떠나기 전 <b>초안 백업</b>을 저장하세요.</div><div class="tools"><button id="new" type="button">새 사건 시작</button><button id="sample" type="button">기본 서식 불러오기</button><button id="backup" type="button">초안 백업(.json)</button><label class="button">초안 불러오기<input id="restore" type="file" accept="application/json,.json" hidden></label><button id="ghConfigBtn" type="button" style="border-color:var(--primary);color:var(--primary)">⚙️ GitHub 자동연동 설정</button></div><form id="form"><div id="fields"></div><section><h3>05 · 현장기록사진</h3><p>사진은 최대 8장. 선택 순서가 보고서 순서입니다. 첫 사진이 상단에 표시됩니다.</p><label class="button primary">휴대폰 사진 선택<input id="photoInput" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden></label><p class="hint">선택한 사진은 긴 변 1600px로 줄이고 JPEG로 다시 저장합니다. 위치 등 원본 메타데이터는 포함하지 않습니다.</p><div id="photos"></div></section><section><h3>06 · 게시 전 확인</h3><p>‘확인 중’ 항목과 보고 기준시각을 검토하고, 사진에 개인정보가 노출되는지 확인하세요. 원본 출동지령서는 게시하지 않습니다.</p><label class="confirm"><input id="reviewed" type="checkbox"> 보고 내용과 사진을 확인했습니다.</label></section><div class="actions"><button id="preview" type="button" class="primary">전체 미리보기</button><button id="publishGh" type="button" class="primary" style="background:#0F7B3D;border-color:#0F7B3D">🚀 GitHub 즉시 배포 (원클릭)</button><button id="export" type="button">게시용 index.html 파일 저장</button></div><div id="downloads"></div><p id="message" role="status" aria-live="polite"></p></form><section id="previewArea" hidden><div class="tools"><h3>게시 화면 미리보기</h3><button id="close" type="button">미리보기 닫기</button></div><iframe id="previewFrame" title="보고서 전체 미리보기" sandbox="allow-scripts allow-modals"></iframe></section><dialog id="ghModal" style="border:1px solid var(--border);border-radius:12px;padding:24px;max-width:520px;width:90%;background:var(--canvas);color:var(--fg);box-shadow:0 12px 36px rgba(0,0,0,0.25)"><h3 style="margin-top:0">GitHub 자동 업로드(배포) 설정</h3><p style="font-size:14px;color:var(--fg2);line-height:1.5">GitHub Personal Access Token(PAT)을 한 번 저장해 두면 파일 다운로드 없이 <b>[GitHub 즉시 배포]</b> 버튼 클릭 한 번으로 웹사이트가 갱신됩니다. 토큰은 브라우저 내부(LocalStorage)에만 안전하게 보관됩니다.</p><div style="display:flex;flex-direction:column;gap:12px;margin:16px 0"><label style="font-size:14px">저장소 이름 (소유자/레포명)<input id="ghRepo" placeholder="예: hyeonjunyi/Emergency_Report" style="width:100%"></label><label style="font-size:14px">브랜치<input id="ghBranch" value="main" placeholder="main" style="width:100%"></label><label style="font-size:14px">GitHub Personal Access Token (repo 권한)<input id="ghToken" type="password" placeholder="ghp_xxxxxxxxxxxx" style="width:100%"></label></div><div style="display:flex;justify-content:flex-end;gap:8px"><button id="ghSaveBtn" type="button" class="primary">설정 저장</button><button id="ghCloseBtn" type="button">닫기</button></div></dialog><footer>작성 기본값 · 현장대응단 소방장 이현준 (📞 010-4200-9870)<br>GitHub 배포 완료 시 GitHub Pages 주소로 실시간 갱신됩니다.</footer></main><script src="report.js"></script><script src="editor.js"></script></body></html>
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>현장보고 작성 | 현장대응단</title>
+  <link rel="stylesheet" href="editor.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">본문 바로가기</a>
+  <header>
+    <b>현장대응단 · 화재조사</b>
+    <button type="button" data-contrast>선명한 화면</button>
+    <a href="index.html" target="_blank" rel="noopener">현재 보고서 보기</a>
+  </header>
+  <main id="main">
+    <p class="eyebrow">화재조사 업무</p>
+    <h2 class="page-title">화재조사 현장보고 작성</h2>
+    <p class="lead">내용 입력 → 사진 선택 → 전체 미리보기 → 즉시 GitHub 배포 또는 파일 저장</p>
+    <div class="notice">
+      입력 내용은 이 휴대폰 브라우저에 임시 저장됩니다. 사진은 임시 저장되지 않으므로 자리를 떠나기 전 <b>초안 백업</b>을 저장하세요.
+    </div>
+    <div class="tools">
+      <button id="new" type="button">새 사건 시작</button>
+      <button id="sample" type="button">기본 서식 불러오기</button>
+      <button id="backup" type="button">초안 백업(.json)</button>
+      <label class="button">초안 불러오기
+        <input id="restore" type="file" accept="application/json,.json" hidden>
+      </label>
+      <button id="ghConfigBtn" type="button" style="border-color:var(--primary);color:var(--primary);font-weight:600">⚙️ GitHub 자동연동 설정</button>
+    </div>
+    <form id="form">
+      <div id="fields"></div>
+      <section>
+        <h3>05 · 현장기록사진</h3>
+        <p>사진은 최대 8장. 선택 순서가 보고서 순서입니다. 첫 사진이 상단에 표시됩니다.</p>
+        <label class="button primary">휴대폰 사진 선택
+          <input id="photoInput" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden>
+        </label>
+        <p class="hint">선택한 사진은 긴 변 1600px로 줄이고 JPEG로 다시 저장합니다. 위치 등 원본 메타데이터는 포함하지 않습니다.</p>
+        <div id="photos"></div>
+      </section>
+      <section>
+        <h3>06 · 게시 전 확인</h3>
+        <p>‘확인 중’ 항목과 보고 기준시각을 검토하고, 사진에 개인정보가 노출되는지 확인하세요. 원본 출동지령서는 게시하지 않습니다.</p>
+        <label class="confirm">
+          <input id="reviewed" type="checkbox"> 보고 내용과 사진을 확인했습니다.
+        </label>
+      </section>
+      <div class="actions">
+        <button id="preview" type="button" class="primary">전체 미리보기</button>
+        <button id="publishGh" type="button" class="primary" style="background:#0F7B3D;border-color:#0F7B3D">🚀 GitHub 즉시 배포 (원클릭)</button>
+        <button id="export" type="button">게시용 index.html 파일 저장</button>
+      </div>
+      <div id="downloads"></div>
+      <p id="message" role="status" aria-live="polite"></p>
+    </form>
+
+    <section id="previewArea" hidden>
+      <div class="tools">
+        <h3>게시 화면 미리보기</h3>
+        <button id="close" type="button">미리보기 닫기</button>
+      </div>
+      <iframe id="previewFrame" title="보고서 전체 미리보기" sandbox="allow-scripts allow-modals"></iframe>
+    </section>
+
+    <!-- GitHub 모달 (호환성 100% fixed div 레이어) -->
+    <div id="ghModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.65);z-index:99999;justify-content:center;align-items:center">
+      <div style="background:var(--canvas,#fff);color:var(--fg,#131416);border:1px solid var(--border,#ccc);border-radius:12px;padding:24px;max-width:500px;width:92%;box-shadow:0 12px 32px rgba(0,0,0,0.3);box-sizing:border-box">
+        <h3 style="margin-top:0">GitHub 자동 업로드(배포) 설정</h3>
+        <p style="font-size:14px;color:var(--fg2,#555);line-height:1.5">
+          GitHub Personal Access Token(PAT)을 한 번 저장해 두면 파일 다운로드 없이 <b>[GitHub 즉시 배포]</b> 버튼 클릭 한 번으로 웹사이트가 갱신됩니다. 토큰은 브라우저(LocalStorage)에만 안전하게 보관됩니다.
+        </p>
+        <div style="display:flex;flex-direction:column;gap:12px;margin:16px 0">
+          <label style="font-size:14px">저장소 이름 (소유자/레포명)
+            <input id="ghRepo" placeholder="예: hyeonjunyi/Emergency_Report" style="width:100%;min-height:40px;margin-top:4px">
+          </label>
+          <label style="font-size:14px">브랜치
+            <input id="ghBranch" value="main" placeholder="main" style="width:100%;min-height:40px;margin-top:4px">
+          </label>
+          <label style="font-size:14px">GitHub Personal Access Token (repo 권한)
+            <input id="ghToken" type="password" placeholder="ghp_xxxxxxxxxxxx" style="width:100%;min-height:40px;margin-top:4px">
+          </label>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px">
+          <button id="ghSaveBtn" type="button" class="primary" style="min-height:40px">설정 저장</button>
+          <button id="ghCloseBtn" type="button" style="min-height:40px">닫기</button>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      작성 기본값 · 현장대응단 소방장 이현준 (📞 010-4200-9870)<br>
+      GitHub 배포 완료 시 GitHub Pages 주소로 실시간 갱신됩니다.
+    </footer>
+  </main>
+  <script src="report.js"></script>
+  <script src="editor.js"></script>
+</body>
+</html>
