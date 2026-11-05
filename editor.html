@@ -5,17 +5,23 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>현장보고 작성 | 현장대응단</title>
   <link rel="stylesheet" href="editor.css">
-  <style>
-    /* 모바일 맞춤 슬림 버튼 & 헤더 스타일 */
-    header .wrap { min-height: 48px; padding: 6px 16px; display: flex; align-items: center; justify-content: space-between; }
-    header b { font-size: 16px; margin: 0; }
-    .btn-sm { min-height: 32px !important; padding: 4px 10px !important; font-size: 13px !important; border-radius: 4px; }
-    .type-selector { display: flex; gap: 8px; margin: 12px 0 16px; background: var(--canvas); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); align-items: center; }
-    .type-selector label { font-size: 15px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
-    .actions { display: flex; gap: 6px; flex-wrap: wrap; margin: 16px 0; }
-    .actions button { min-height: 38px; padding: 6px 12px; font-size: 14px; flex: 1 1 auto; }
-    .hidden-field { display: none !important; }
-  </style>
+<style>
+  /* 모바일 맞춤 슬림 버튼 & 헤더 스타일 */
+  header .wrap { min-height: 48px; padding: 6px 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: nowrap; }
+  header b { font-size: 15px; margin: 0; white-space: nowrap; }
+  
+  /* 버튼 내부 글자가 세로로 꺾이지 않고 가로로 한 줄로 나오도록 설정 */
+  .btn-sm { min-height: 32px !important; padding: 4px 8px !important; font-size: 12px !important; border-radius: 4px; white-space: nowrap; flex-shrink: 0; }
+  
+  /* 보고 구분 라디오 버튼 영역이 세로로 흐트러지지 않고 가로로 나란히 배치되도록 고정 */
+  .type-selector { display: flex; gap: 12px; margin: 12px 0 16px; background: var(--canvas); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); align-items: center; flex-wrap: nowrap; }
+  .type-selector span { white-space: nowrap; }
+  .type-selector label { font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; white-space: nowrap; }
+  
+  .actions { display: flex; gap: 6px; flex-wrap: wrap; margin: 16px 0; }
+  .actions button { min-height: 38px; padding: 6px 12px; font-size: 14px; flex: 1 1 auto; }
+  .hidden-field { display: none !important; }
+</style>
 </head>
 <body>
   <a class="skip-link" href="#main">본문 바로가기</a>
