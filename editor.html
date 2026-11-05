@@ -6,18 +6,55 @@
   <title>현장보고 작성 | 현장대응단</title>
   <link rel="stylesheet" href="editor.css">
 <style>
-  /* 모바일 맞춤 슬림 버튼 & 헤더 스타일 */
-  header .wrap { min-height: 48px; padding: 6px 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: nowrap; }
-  header b { font-size: 15px; margin: 0; white-space: nowrap; }
+  /* 모바일 화면 폭에 맞춘 가로 정렬 및 자동 줄바꿈(wrapping) 처리 */
+  header .wrap { 
+    min-height: 52px; 
+    padding: 8px 12px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    flex-wrap: wrap; /* 공간이 부족하면 아래로 떨어지게 하여 잘림 방지 */
+    gap: 8px;
+  }
+  header b { font-size: 15px; margin: 0; }
   
-  /* 버튼 내부 글자가 세로로 꺾이지 않고 가로로 한 줄로 나오도록 설정 */
-  .btn-sm { min-height: 32px !important; padding: 4px 8px !important; font-size: 12px !important; border-radius: 4px; white-space: nowrap; flex-shrink: 0; }
-  
-  /* 보고 구분 라디오 버튼 영역이 세로로 흐트러지지 않고 가로로 나란히 배치되도록 고정 */
-  .type-selector { display: flex; gap: 12px; margin: 12px 0 16px; background: var(--canvas); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); align-items: center; flex-wrap: nowrap; }
-  .type-selector span { white-space: nowrap; }
-  .type-selector label { font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; white-space: nowrap; }
-  
+  /* 작은 버튼들이 화면 밖으로 나가지 않도록 조정 */
+  .btn-sm { 
+    min-height: 32px !important; 
+    padding: 4px 8px !important; 
+    font-size: 12px !important; 
+    border-radius: 4px; 
+    white-space: nowrap; 
+  }
+
+  /* 상단 도구 버튼들(새 사건 시작 등)이 가로로 스크롤되거나 넘치지 않게 줄바꿈 허용 */
+  .tools {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap !important;
+    margin-bottom: 12px;
+  }
+  .tools button, .tools .button {
+    flex: 1 1 auto; /* 화면 크기에 맞게 버튼 크기 자동 조절 */
+    text-align: center;
+    white-space: nowrap;
+    font-size: 12px !important;
+    padding: 6px 8px !important;
+  }
+
+  /* 보고 구분 라디오 버튼 영역 */
+  .type-selector { 
+    display: flex; 
+    gap: 12px; 
+    margin: 12px 0 16px; 
+    background: var(--canvas); 
+    padding: 10px 14px; 
+    border-radius: 8px; 
+    border: 1px solid var(--border); 
+    align-items: center; 
+  }
+  .type-selector label { font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
+
   .actions { display: flex; gap: 6px; flex-wrap: wrap; margin: 16px 0; }
   .actions button { min-height: 38px; padding: 6px 12px; font-size: 14px; flex: 1 1 auto; }
   .hidden-field { display: none !important; }
