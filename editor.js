@@ -1,6 +1,6 @@
 (async()=>{
 'use strict';
-const $=id=>document.getElementById(id),key='gyeryong-field-v5:'+location.pathname.replace(/[^/]*$/,'');
+const $=id=>document.getElementById(id),key='gyeryong-field-v4:'+location.pathname.replace(/[^/]*$/,'');
 const ghKey='gyeryong-gh-config-v1';
 
 function openGhModal(){
@@ -29,6 +29,7 @@ if($('ghSaveBtn'))$('ghSaveBtn').onclick=()=>{
   msg('GitHub 연동 정보가 저장되었습니다.');
 };
 
+// 'yyyy.mm.dd. hh:mm' 서식 생성 함수
 function formatKST(dateObj = new Date()) {
   const parts = new Intl.DateTimeFormat('sv-SE', {
     timeZone: 'Asia/Seoul',
@@ -39,16 +40,14 @@ function formatKST(dateObj = new Date()) {
   return `${p.year}.${p.month}.${p.day}. ${p.hour}:${p.minute}`;
 }
 
-// 요청사항에 맞춘 실화재 필드 그룹 재배치
+// 실화재 필드 그룹
 const fireGroups = [
   ['01 · 기본정보', [
     ['title', '보고서 제목'],
     ['date', '발생시각'],
+    ['received', '신고 접수시각'],
     ['dispatch', '출동 지령시각'],
     ['arrival', '선착대 도착시각'],
-    ['commander_arrival', '지휘팀 도착시각'],
-    ['knockdown', '초진 시각'],
-    ['out', '완진 시각'],
     ['injury', '인명피해 현황'],
     ['status', '현재 대응상태 (예: 진압 중, 완진 등)'],
     ['updated', '보고 기준시각'],
@@ -56,19 +55,24 @@ const fireGroups = [
     ['author', '작성자 성명/직급'],
     ['phone', '작성자 연락처']
   ]],
-  ['02 · 출동대 현황', [
+  ['02 · 출동대 현황 (선착대 / 추가출동대 / 타서 지원출동 / 유관기관)', [
     ['first_crew', '선착대 현황', 'textarea'],
-    ['extra_crew', '추가출동대 현황', 'textarea', true],
-    ['support_crew', '타서 지원출동 현황', 'textarea', true],
-    ['agency', '유관기관 공동대응', 'textarea']
+    ['extra_crew', '추가출동대 현황', 'textarea'],
+    ['support_crew', '타서 지원출동 현황', 'textarea'],
+    ['agency', '유관기관 공동대응 현황', 'textarea']
   ]],
   ['03 · 대상 상세 및 초기 현장상황', [
     ['address', '화재장소'],
     ['kind', '화재분류'],
-    ['target_vehicle', '화재대상 및 상세정보 (차종·연료·건물구조 등)', 'textarea'],
-    ['situation', '초기 현장 확인사항 및 진압 활동', 'textarea']
+    ['target', '화재대상'],
+    ['vehicle', '대상 상세정보 (차종·연료·건물구조 등)', 'textarea'],
+    ['situation', '초기 현장 확인사항 및 진압 활동', 'textarea'],
+    ['checks', '추가 확인사항 (인명검색, 연소확대 방지 등)', 'textarea']
   ]],
-  ['04 · 피해 및 조사', [
+  ['04 · 대응 경과 및 피해조사', [
+    ['commander_arrival', '지휘팀 도착시각'],
+    ['knockdown', '초진 시각'],
+    ['out', '완진 시각'],
     ['damage', '대상 피해내역'],
     ['loss', '재산피해 추정액'],
     ['origin', '발화지점'],
@@ -76,31 +80,31 @@ const fireGroups = [
   ]]
 ];
 
+// 오인신고 필드 그룹 (요청사항 100% 반영: 01 기본정보 축소, 02 출동대 단일공란, 03 장소/분류/대상/상황, 04 대응경과/피해 완전 삭제)
 const falseAlarmGroups = [
   ['01 · 기본정보', [
     ['title', '보고서 제목'],
     ['dispatch', '출동 지령시각'],
-    ['status', '현재 대응상태 (예: 상황종료 등)'],
+    ['status', '현재 대응상태 (예: 상황종료, 귀소 완료 등)'],
     ['updated', '보고 기준시각'],
     ['unit', '소속 기관'],
     ['author', '작성자'],
     ['phone', '작성자 연락처']
   ]],
   ['02 · 출동대 현황', [
-    ['crew_single', '출동대 편성 및 인력 현황', 'textarea']
+    ['crew_single', '출동대 편성 및 인력 현황 (선착대·지원출동·유관기관 통합 기재)', 'textarea']
   ]],
   ['03 · 대상 상세 및 초기 현장상황', [
     ['address', '화재장소'],
-    ['kind', '화재분류 (오인신고)'],
-    ['target_vehicle', '화재대상 및 상세정보', 'textarea'],
-    ['situation', '현장상황 (오인 원인 및 조치내용)', 'textarea']
+    ['kind', '화재분류 (예: 오인신고 - 연기오인 / 쓰레기소각 등)'],
+    ['target', '화재대상 (예: 나대지, 비닐하우스 주변 등)'],
+    ['situation', '현장상황 (오인 원인 및 현장 안전조치·계도 내용)', 'textarea']
   ]]
 ];
 
 let allFieldNames = Array.from(new Set([
   ...fireGroups.flatMap(g => g[1].map(f => f[0])),
-  ...falseAlarmGroups.flatMap(g => g[1].map(f => f[0])),
-  'received' // legacy key support
+  ...falseAlarmGroups.flatMap(g => g[1].map(f => f[0]))
 ]));
 
 let photos = [], sample, css, reportCode, busy = false;
@@ -139,6 +143,7 @@ function buildForm(type) {
 }
 
 function changed() {
+  $('reviewed').checked = false;
   if ($('f-updated')) $('f-updated').value = formatKST();
   const d = collect();
   delete d.photos;
@@ -146,7 +151,7 @@ function changed() {
 }
 
 function collect() {
-  const selectedType = document.querySelector('input[name="reportType"]')?.value || $('reportTypeVal')?.value || 'fire';
+  const selectedType = $('reportTypeVal')?.value || 'fire';
   const data = {
     reportType: selectedType,
     photos: photos.map(p => ({ ...p }))
@@ -161,6 +166,8 @@ function fill(d) {
   window._formData = { ...d };
   const type = d.reportType || ((d.kind && d.kind.includes('오인')) ? 'false_alarm' : 'fire');
   setReportType(type);
+  
+  buildForm(type);
 
   allFieldNames.forEach(k => {
     if ($('f-' + k)) {
@@ -175,6 +182,48 @@ function fill(d) {
     : [];
   draw();
   changed();
+}
+
+// 2. 새 사건 시작: 시각은 현재시각('yyyy.mm.dd. hh:mm'), 서술란 및 출동대란은 완전 공란("")
+function fresh() {
+  const currentTime = formatKST();
+  const selectedType = $('reportTypeVal')?.value || 'fire';
+  const isFalse = (selectedType === 'false_alarm');
+
+  const d = {
+    reportType: selectedType,
+    title: isFalse ? '오인출동 현장상황보고' : '화재 초기 현장상황보고',
+    date: currentTime,
+    received: currentTime,
+    dispatch: currentTime,
+    arrival: currentTime,
+    commander_arrival: currentTime,
+    knockdown: isFalse ? '-' : currentTime,
+    out: isFalse ? '-' : currentTime,
+    updated: currentTime,
+    unit: '계룡소방서 현장대응단',
+    author: '현장대응단 소방장 이현준',
+    phone: '010-4200-9870',
+    status: isFalse ? '상황종료' : '진압 중',
+    kind: isFalse ? '오인신고(연기오인 등)' : '',
+    address: '',
+    target: '',
+    first_crew: '',
+    extra_crew: '',
+    support_crew: '',
+    agency: '',
+    crew_single: '',
+    vehicle: '',
+    situation: '',
+    checks: '',
+    injury: isFalse ? '없음' : '확인 중',
+    damage: isFalse ? '없음' : '확인 중',
+    loss: isFalse ? '0원' : '산정 중',
+    origin: isFalse ? '-' : '조사 중',
+    cause: isFalse ? '오인신고 원인 확인' : '조사 중',
+    photos: []
+  };
+  fill(d);
 }
 
 function setReportType(type) {
@@ -199,61 +248,22 @@ function setReportType(type) {
       btnFalse.style.borderColor = 'var(--border)';
     }
   }
-  buildForm(type);
+  const cur = collect();
+  cur.reportType = type;
+  if (type === 'false_alarm' && (!cur.title || cur.title.includes('화재 초기'))) {
+    cur.title = '오인출동 현장상황보고';
+    cur.status = '상황종료';
+    cur.kind = '오인신고(연기오인 등)';
+  } else if (type === 'fire' && cur.title.includes('오인출동')) {
+    cur.title = '화재 초기 현장상황보고';
+    cur.status = '진압 중';
+    cur.kind = '일반화재';
+  }
+  fill(cur);
 }
 
-// 2. 새 사건 시작: 시각은 현재시각, 출동대현황 및 현장상황 등은 공란("")
-function fresh() {
-  const currentTime = formatKST();
-  const selectedType = $('reportTypeVal')?.value || 'fire';
-  const isFalse = (selectedType === 'false_alarm');
-
-  const d = {
-    reportType: selectedType,
-    title: isFalse ? '오인출동 현장상황보고' : '화재 초기 현장상황보고',
-    date: currentTime,
-    received: currentTime,
-    dispatch: currentTime,
-    arrival: currentTime,
-    commander_arrival: currentTime,
-    knockdown: isFalse ? '-' : currentTime,
-    out: isFalse ? '-' : currentTime,
-    updated: currentTime,
-    unit: '계룡소방서 현장대응단',
-    author: '현장대응단 소방장 이현준',
-    phone: '010-4200-9870',
-    status: isFalse ? '상황종료' : '진압 중',
-    kind: '',
-    address: '',
-    target_vehicle: '',
-    first_crew: '',
-    extra_crew: '',
-    support_crew: '',
-    agency: '',
-    crew_single: '',
-    situation: '',
-    injury: isFalse ? '없음' : '',
-    damage: isFalse ? '없음' : '',
-    loss: isFalse ? '0원' : '',
-    origin: isFalse ? '-' : '',
-    cause: isFalse ? '' : '',
-    photos: []
-  };
-  fill(d);
-}
-
-if($('btnTypeFire')) $('btnTypeFire').onclick = () => {
-  setReportType('fire');
-  const cur = collect();
-  if(cur.title.includes('오인출동')) { cur.title = '화재 초기 현장상황보고'; cur.status = '진압 중'; }
-  fill(cur);
-};
-if($('btnTypeFalse')) $('btnTypeFalse').onclick = () => {
-  setReportType('false_alarm');
-  const cur = collect();
-  if(!cur.title || cur.title.includes('화재 초기')) { cur.title = '오인출동 현장상황보고'; cur.status = '상황종료'; cur.kind = '오인신고'; }
-  fill(cur);
-};
+if($('btnTypeFire')) $('btnTypeFire').onclick = () => setReportType('fire');
+if($('btnTypeFalse')) $('btnTypeFalse').onclick = () => setReportType('false_alarm');
 
 function draw() {
   const root = $('photos');
@@ -334,8 +344,8 @@ async function embedded(d) {
 
 function html(d) {
   d.updated = formatKST();
-  const json = JSON.stringify(d).replace(/</g, '\\\\u003c');
-  return '<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + (d.title || '현장상황보고') + '</title><style>' + css + '</style></head><body><div id="report"></div><script>' + reportCode + '\\nFieldReport.mount(' + json + ');<\\/script></body></html>';
+  const json = JSON.stringify(d).replace(/</g, '\\u003c');
+  return '<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + (d.title || '현장상황보고') + '</title><style>' + css + '</style></head><body><div id="report"></div><script>' + reportCode + '\nFieldReport.mount(' + json + ');<\/script></body></html>';
 }
 
 function requireTitle() {
@@ -425,18 +435,10 @@ try {
 
 let saved;
 try { saved = JSON.parse(localStorage.getItem(key)); } catch {}
-
-// 1. 초기 모드(실화재 또는 오인신고) 우선 빌드
-const initialType = saved?.reportType || 'fire';
-setReportType(initialType);
-
-// 2. 데이터 채우기
 if (saved && typeof saved === 'object') {
   fill(saved);
-  msg('임시 저장된 내용을 불러왔습니다.');
-} else if (sample) {
+} else {
   fill(sample);
-  msg('기본 서식을 불러왔습니다.');
 }
 
 $('new').onclick = () => {
@@ -478,6 +480,7 @@ $('close').onclick = () => { $('previewArea').hidden = true; };
 
 $('export').onclick = () => run(async () => {
   requireTitle();
+  if (!$('reviewed').checked) throw Error('확인란에 체크해 주세요.');
   const doc = html(await embedded(collect()));
   download(doc, 'text/html;charset=utf-8', 'index.html');
   msg('index.html 파일이 저장되었습니다.');
@@ -485,6 +488,7 @@ $('export').onclick = () => run(async () => {
 
 $('publishGh').onclick = () => run(async () => {
   requireTitle();
+  if (!$('reviewed').checked) throw Error('확인란에 체크해 주세요.');
   const doc = html(await embedded(collect()));
   await publishToGitHub(doc);
 });
