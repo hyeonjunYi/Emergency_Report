@@ -412,7 +412,7 @@ async function publishToGitHub(docHtml) {
 
 try {
   [sample, css, reportCode] = await Promise.all(['default.json', 'style.css', 'report.js'].map(async (u, i) => {
-    const r = await fetch(u, { cache: 'no-store' });
+    const r = await fetch(u);
     if (!r.ok) throw Error('리소스를 불러오지 못했습니다.');
     return i === 0 ? r.json() : r.text();
   }));
