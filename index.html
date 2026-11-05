@@ -164,7 +164,7 @@ return `
     </div>
 
     <!-- 상단 핵심 지표: 출동 지령, 선착대 도착, 초진 시각, 완진 시각 -->
-    <section class="stats" aria-label="출동 및 대응 시각 현황" style="grid-template-columns:repeat(4, 1fr);gap:16px;margin:24px 0 32px;">
+    <section class="stats" aria-label="출동 및 대응 시각 현황" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:24px 0 32px;">
       ${cell('출동 지령','dispatch')}
       ${cell('선착대 도착','arrival')}
       ${cell('초진 시각','knockdown')}
