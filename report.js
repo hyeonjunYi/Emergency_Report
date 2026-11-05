@@ -11,7 +11,7 @@ const pair=(label,key)=>`<dt>${label}</dt><dd>${e(key)}</dd>`;
 const cell=(label,key)=>`<div><small>${label}</small><strong>${e(key)}</strong></div>`;
 
 if(isFalse){
-  /* === 오인신고 레이아웃 (축소 간이 버전) === */
+  /* === 오인신고 레이아웃 === */
   return `
     <a class="skip-link" href="#main">본문 바로가기</a>
     <header>
@@ -35,13 +35,11 @@ if(isFalse){
         <p class="source-note" style="margin-top:6px;">보고 기준 · ${e('updated')}</p>
       </div>
 
-      <!-- 핵심 출동 지표 -->
       <section class="stats" style="grid-template-columns:repeat(2, 1fr);gap:12px;margin:16px 0 24px;">
         ${cell('출동 지령', 'dispatch')}
         ${cell('현재 상태', 'status')}
       </section>
 
-      <!-- 현장기록사진 -->
       ${photos.length?`
         <section class="gallery" id="galleryContainer" aria-label="현장기록사진" style="height:320px;">
           <img id="scene" src="${esc(photos[0].src)}" alt="${esc(photos[0].caption)}">
@@ -58,7 +56,6 @@ if(isFalse){
         </section>
       `:''}
 
-      <!-- 01. 출동대 현황 (단일 공란) -->
       <section class="panel crew-highlight-panel" style="margin:20px 0 24px;">
         <p class="eyebrow">01 · 출동대 현황</p>
         <h3>현장 출동대 및 인력</h3>
@@ -67,26 +64,19 @@ if(isFalse){
         </div>
       </section>
 
-      <!-- 02. 대상 및 현장상황 -->
       <section class="panel" style="margin-bottom:24px;">
         <p class="eyebrow">02 · 대상 및 현장상황</p>
         <h3>출동 개요 및 상황</h3>
         <dl style="margin-bottom:16px;">
           ${pair('화재장소', 'address')}
           ${pair('화재분류', 'kind')}
-          ${pair('화재대상', 'target')}
+          ${pair('대상 및 상세정보', 'target_vehicle')}
         </dl>
         <div style="border-top:1px solid var(--rule);padding-top:12px;">
           <small style="display:block;font-size:13px;color:var(--fg2);margin-bottom:4px;font-weight:600;">현장상황 및 조치결과</small>
           <p class="situation" style="white-space:pre-wrap;font-size:15px;margin:0;">${e('situation')}</p>
         </div>
       </section>
-
-      ${photos.length>1?`
-        <section class="photo-strip" style="margin-top:20px;">
-          ${photos.slice(1).map(p=>`<figure><img src="${esc(p.src)}" alt="${esc(p.caption)}"><figcaption>${esc(p.caption)}</figcaption></figure>`).join('')}
-        </section>
-      `:''}
 
       <footer>
         <div class="signoff" style="font-size:13px;">
@@ -99,20 +89,19 @@ if(isFalse){
   `;
 }
 
-/* === 실화재 레이아웃 (정밀 정석 버전) === */
+/* === 실화재 레이아웃 (최신 항목 배치 반영) === */
 return `
   <a class="skip-link" href="#main">본문 바로가기</a>
   <header>
     <div class="wrap">
       <b>${e('unit')}</b>
-      <span class="header-received"><small>신고접수</small> <strong>${e('received')}</strong></span>
       <span class="draft-label">초기 현장상황보고</span>
       <button onclick="window.print()">인쇄 / PDF</button>
     </div>
   </header>
   <main class="wrap" id="main">
     <div class="intro">
-      <p class="eyebrow">화재조사 현장기록 · ${e('date')} <span>(신고접수 ${e('received')})</span></p>
+      <p class="eyebrow">화재조사 현장기록 · ${e('date')}</p>
       <div class="title-row">
         <h2 class="report-title">${e('title')}<br><span>초기 현장상황보고.</span></h2>
         <div class="complete ongoing">
@@ -128,12 +117,14 @@ return `
       <p class="source-note">보고 기준 · ${e('updated')}</p>
     </div>
 
-    <!-- 핵심 출동 및 피해 현황 -->
-    <section class="stats" aria-label="핵심 출동 및 피해 현황">
-      ${cell('신고 접수','received')}
+    <!-- 상단 핵심 시각 지표 (발생, 지령, 선착대도착, 지휘팀도착, 초진, 완진) -->
+    <section class="stats" aria-label="출동 및 대응 시각 현황" style="grid-template-columns:repeat(3, 1fr);gap:16px;margin:24px 0 32px;">
+      ${cell('발생 시각','date')}
       ${cell('출동 지령','dispatch')}
-      ${cell('현장 도착','arrival')}
-      ${cell('인명피해','injury')}
+      ${cell('선착대 도착','arrival')}
+      ${cell('지휘팀 도착','commander_arrival')}
+      ${cell('초진 시각','knockdown')}
+      ${cell('완진 시각','out')}
     </section>
 
     <!-- 현장기록사진 -->
@@ -146,14 +137,14 @@ return `
           <p id="caption">${esc(photos[0].caption)}</p>
         </div>
         <div class="photo-controls">
-          <button id="prev" aria-label="이전 사진" title="이전 사진">◀</button>
-          <button id="pause" aria-label="자동 재생 멈춤" title="자동 재생 일시정지">⏸</button>
-          <button id="next" aria-label="다음 사진" title="다음 사진">▶</button>
+          <button id="prev" title="이전 사진">◀</button>
+          <button id="pause" title="정지/재생">⏸</button>
+          <button id="next" title="다음 사진">▶</button>
         </div>
       </section>
     `:'<section class="panel">현장사진 등록 전</section>'}
 
-    <!-- 01. 출동대 현황 (선착대, 추가출동대, 타서 지원출동, 유관기관) -->
+    <!-- 01. 출동대 현황 -->
     <section class="panel crew-highlight-panel" aria-label="출동대 현황">
       <p class="eyebrow">01 · 출동대 현황</p>
       <h3>현장 출동대 및 인력</h3>
@@ -165,14 +156,15 @@ return `
       ${d.agency&&d.agency!=='확인 중'?`<div class="agency-note"><strong>유관기관 공동대응</strong><p>${e('agency')}</p></div>`:''}
     </section>
 
+    <!-- 02. 대상 상세정보 (화재대상 + 상세정보 통합) -->
     <div class="report-grid">
       <section class="panel">
         <p class="eyebrow">02 · 대상 상세정보</p>
         <h3>화재 대상</h3>
         <dl>
           ${pair('발생장소','address')}
-          ${pair('화재대상','target')}
-          ${pair('대상정보','vehicle')}
+          ${pair('화재분류','kind')}
+          ${pair('대상 및 상세정보','target_vehicle')}
           ${pair('유관기관','agency')}
         </dl>
       </section>
@@ -181,10 +173,6 @@ return `
         <p class="eyebrow">03 · 현장 확인</p>
         <h3>초기 현장상황</h3>
         <p class="situation" style="white-space:pre-wrap">${e('situation')}</p>
-        <div class="check-note">
-          <strong>추가 확인사항</strong>
-          <p style="white-space:pre-wrap">${e('checks')}</p>
-        </div>
       </section>
     </div>
 
@@ -198,18 +186,8 @@ return `
         ${cell('재산피해액','loss')}
         ${cell('발화지점','origin')}
         ${cell('화재원인','cause')}
-        <div><small>초진 / 완진</small><strong>${e('knockdown')} / ${e('out')}</strong></div>
       </div>
-      <p class="source-note">현장 확인 및 조사 진행에 따라 보완 예정.</p>
-    </section>
-
-    <!-- 대응 경과 타임라인 -->
-    <section class="panel timeline-panel">
-      <p class="eyebrow">04 · 대응 경과</p>
-      <h3>상황 경과</h3>
-      <ol class="timeline">
-        ${[['received','신고 접수'],['dispatch','출동 지령'],['arrival','선착대 도착'],['commander_arrival','지휘팀 도착'],['knockdown','초진'],['out','완진']].map(([k,t])=>`<li><time>${e(k)}</time><strong>${t}</strong></li>`).join('')}
-      </ol>
+      <p class="source-note" style="margin-top:12px;">현장 확인 및 조사 진행에 따라 보완 예정.</p>
     </section>
 
     ${photos.length>1?`
