@@ -151,7 +151,7 @@ function changed() {
 }
 
 function collect() {
-  const selectedType = $('reportTypeVal')?.value || 'fire';
+  const selectedType = document.querySelector('input[name="reportType"]:checked')?.value || 'fire';
   const data = {
     reportType: selectedType,
     photos: photos.map(p => ({ ...p }))
@@ -165,7 +165,8 @@ function collect() {
 function fill(d) {
   window._formData = { ...d };
   const type = d.reportType || ((d.kind && d.kind.includes('오인')) ? 'false_alarm' : 'fire');
-  setReportType(type);
+  const radio = document.querySelector(`input[name="reportType"][value="${type}"]`);
+  if (radio) radio.checked = true;
   
   buildForm(type);
 
@@ -187,7 +188,7 @@ function fill(d) {
 // 2. 새 사건 시작: 시각은 현재시각('yyyy.mm.dd. hh:mm'), 서술란 및 출동대란은 완전 공란("")
 function fresh() {
   const currentTime = formatKST();
-  const selectedType = $('reportTypeVal')?.value || 'fire';
+  const selectedType = document.querySelector('input[name="reportType"]:checked')?.value || 'fire';
   const isFalse = (selectedType === 'false_alarm');
 
   const d = {
@@ -226,44 +227,22 @@ function fresh() {
   fill(d);
 }
 
-function setReportType(type) {
-  $('reportTypeVal').value = type;
-  const isFalse = (type === 'false_alarm');
-  const btnFire = $('btnTypeFire');
-  const btnFalse = $('btnTypeFalse');
-  if(btnFire && btnFalse) {
-    if(isFalse) {
-      btnFalse.style.background = 'var(--primary)';
-      btnFalse.style.color = '#fff';
-      btnFalse.style.borderColor = 'var(--primary)';
-      btnFire.style.background = 'var(--muted)';
-      btnFire.style.color = 'var(--fg)';
-      btnFire.style.borderColor = 'var(--border)';
-    } else {
-      btnFire.style.background = 'var(--primary)';
-      btnFire.style.color = '#fff';
-      btnFire.style.borderColor = 'var(--primary)';
-      btnFalse.style.background = 'var(--muted)';
-      btnFalse.style.color = 'var(--fg)';
-      btnFalse.style.borderColor = 'var(--border)';
+document.querySelectorAll('input[name="reportType"]').forEach(r => {
+  r.onchange = () => {
+    const cur = collect();
+    cur.reportType = r.value;
+    if (r.value === 'false_alarm' && (!cur.title || cur.title.includes('화재 초기'))) {
+      cur.title = '오인출동 현장상황보고';
+      cur.status = '상황종료';
+      cur.kind = '오인신고(연기오인 등)';
+    } else if (r.value === 'fire' && cur.title.includes('오인출동')) {
+      cur.title = '화재 초기 현장상황보고';
+      cur.status = '진압 중';
+      cur.kind = '일반화재';
     }
-  }
-  const cur = collect();
-  cur.reportType = type;
-  if (type === 'false_alarm' && (!cur.title || cur.title.includes('화재 초기'))) {
-    cur.title = '오인출동 현장상황보고';
-    cur.status = '상황종료';
-    cur.kind = '오인신고(연기오인 등)';
-  } else if (type === 'fire' && cur.title.includes('오인출동')) {
-    cur.title = '화재 초기 현장상황보고';
-    cur.status = '진압 중';
-    cur.kind = '일반화재';
-  }
-  fill(cur);
-}
-
-if($('btnTypeFire')) $('btnTypeFire').onclick = () => setReportType('fire');
-if($('btnTypeFalse')) $('btnTypeFalse').onclick = () => setReportType('false_alarm');
+    fill(cur);
+  };
+});
 
 function draw() {
   const root = $('photos');

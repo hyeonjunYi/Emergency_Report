@@ -31,14 +31,11 @@
   <main id="main" style="padding: 12px 16px;">
     <h2 class="page-title" style="font-size: 22px; margin: 10px 0 6px;">현장보고 작성</h2>
     
-    <!-- 화재 / 오인신고 전환 버튼 -->
-    <div class="type-selector" style="display:flex; gap:10px; margin:12px 0 16px; background:var(--canvas); padding:10px 14px; border-radius:8px; border:1px solid var(--border); align-items:center;">
-      <span style="font-size:14px; color:var(--fg2); font-weight:600; white-space:nowrap;">보고 구분:</span>
-      <div style="display:flex; gap:8px; flex:1;">
-        <button type="button" id="btnTypeFire" style="flex:1; min-height:38px; font-weight:700; font-size:14px; border-radius:6px; cursor:pointer; border:1px solid var(--primary); background:var(--primary); color:#fff;">🔥 화재</button>
-        <button type="button" id="btnTypeFalse" style="flex:1; min-height:38px; font-weight:700; font-size:14px; border-radius:6px; cursor:pointer; border:1px solid var(--border); background:var(--muted); color:var(--fg);">🚨 오인신고</button>
-      </div>
-      <input type="hidden" id="reportTypeVal" value="fire">
+    <!-- 1. 실화재 / 오인신고 선택 토글 -->
+    <div class="type-selector">
+      <span style="font-size:14px; color:var(--fg2); margin-right:8px;">보고 구분:</span>
+      <label><input type="radio" name="reportType" value="fire" checked> 실화재</label>
+      <label style="margin-left:8px;"><input type="radio" name="reportType" value="false_alarm"> 오인신고</label>
     </div>
 
     <div class="tools" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;">
