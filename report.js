@@ -98,7 +98,7 @@ window.FieldReport = (() => {
 
           <section
             class="stats"
-            style="grid-template-columns:repeat(2,1fr);gap:12px;margin:16px 0 24px;">
+            style="grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0 24px;">
             ${cell('출동 지령', 'dispatch')}
             ${cell('현재 상태', 'status')}
           </section>
@@ -243,16 +243,16 @@ window.FieldReport = (() => {
           </p>
         </div>
 
+        <!-- 사진 위: 출동 지령·선착대 도착 -->
         <section
           class="stats"
-          aria-label="출동 및 대응 시각 현황"
-          style="grid-template-columns:repeat(4,1fr);gap:16px;margin:24px 0 32px;">
+          aria-label="출동 시각 현황"
+          style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;width:100%;min-width:0;margin:24px 0;">
           ${cell('출동 지령', 'dispatch')}
           ${cell('선착대 도착', 'arrival')}
-          ${cell('초진 시각', 'knockdown')}
-          ${cell('완진 시각', 'out')}
         </section>
 
+        <!-- 현장기록사진 슬라이드 -->
         ${photos.length ? `
           <section
             class="gallery"
@@ -284,6 +284,15 @@ window.FieldReport = (() => {
         ` : `
           <section class="panel">현장사진 등록 전</section>
         `}
+
+        <!-- 사진 바로 아래: 초진·완진 시각 -->
+        <section
+          class="stats"
+          aria-label="화재 진압 시각 현황"
+          style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;width:100%;min-width:0;margin:16px 0 24px;">
+          ${cell('초진 시각', 'knockdown')}
+          ${cell('완진 시각', 'out')}
+        </section>
 
         <section
           class="panel crew-highlight-panel"
