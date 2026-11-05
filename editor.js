@@ -4,7 +4,8 @@ const $=id=>document.getElementById(id),key='gyeryong-field-v9:'+location.pathna
 const ghKey='gyeryong-gh-config-v1';
 
 function openGhModal(){
-  const saved=JSON.parse(localStorage.getItem(ghKey)||'{}');
+  let saved={};
+  try { saved=JSON.parse(localStorage.getItem(ghKey)||'{}')||{}; } catch {}
   $('ghRepo').value=saved.repo||'hyeonjunyi/Emergency_Report';
   $('ghBranch').value=saved.branch||'main';
   $('ghToken').value=saved.token||'';
@@ -98,7 +99,7 @@ let allFieldNames = Array.from(new Set([
 ]));
 
 let photos = [], sample, css, reportCode, busy = false;
-const msg = t => $('message').textContent = t;
+const msg = t => { $('message').textContent = t; $('message').scrollIntoView({block:'nearest'}); };
 
 function buildForm(type) {
   const root = $('fields');
@@ -232,14 +233,14 @@ function fresh() {
 }
 
 if($('btnTypeFire')) $('btnTypeFire').onclick = () => {
-  setReportType('fire');
   const cur = collect();
+  cur.reportType = 'fire';
   if(cur.title.includes('오인출동')) { cur.title = '화재 초기 현장상황보고'; cur.status = '진압 중'; }
   fill(cur);
 };
 if($('btnTypeFalse')) $('btnTypeFalse').onclick = () => {
-  setReportType('false_alarm');
   const cur = collect();
+  cur.reportType = 'false_alarm';
   if(!cur.title || cur.title.includes('화재 초기')) { cur.title = '오인출동 현장상황보고'; cur.status = '상황종료'; cur.kind = '오인신고'; }
   fill(cur);
 };
@@ -341,67 +342,72 @@ async function run(fn) {
   }
 }
 
+async function githubRequest(url, options = {}) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 45000);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } catch (e) {
+    if (e.name === 'AbortError') throw Error('GitHub 응답 대기시간을 초과했습니다. 저장소의 최신 커밋을 확인한 뒤 다시 시도하세요.');
+    throw Error('GitHub에 연결하지 못했습니다. 인터넷 연결과 브라우저의 네트워크 차단 여부를 확인하세요.');
+  } finally { clearTimeout(timeout); }
+}
+async function githubError(res, step) {
+  const data = await res.json().catch(() => ({}));
+  const tips = {
+    401: 'Token이 잘못되었거나 만료되었습니다. 연동설정에서 다시 입력하세요.',
+    403: '접근이 거부되었습니다. 대상 저장소의 Contents 읽기·쓰기 권한, 조직 승인 또는 API 사용 제한을 확인하세요.',
+    404: '저장소·브랜치 이름과 Token의 대상 저장소 접근 권한을 확인하세요.',
+    409: '다른 변경과 충돌했습니다. 최신 보고서를 확인하고 다시 시도하세요.',
+    422: '파일 갱신 조건을 확인하지 못했습니다. 브랜치 보호 규칙과 오류 상세를 확인하세요.'
+  };
+  return Error(`${step} 실패 (${res.status}): ${tips[res.status] || '잠시 후 다시 시도하세요.'}${data.message ? ' 상세: '+data.message : ''}`);
+}
 async function publishToGitHub(docHtml) {
-  const confStr = localStorage.getItem(ghKey);
-  if (!confStr) {
-    openGhModal();
-    throw Error('GitHub 연동 정보를 입력해 주세요.');
-  }
-  const conf = JSON.parse(confStr);
+  let conf;
+  try { conf = JSON.parse(localStorage.getItem(ghKey) || '{}'); }
+  catch { throw Error('저장된 연동 정보를 읽지 못했습니다. 연동설정에서 다시 저장하세요.'); }
   if (!conf.repo || !conf.token) {
     openGhModal();
-    throw Error('저장소 이름과 Token을 확인해 주세요.');
+    throw Error('연동설정에 저장소와 Token을 입력한 뒤 다시 배포하세요.');
   }
-  msg('GitHub 확인 중...');
-
-  const cleanRepo = conf.repo.trim().replace(/^https?:\/\/github\.com\//, '').replace(/\/$/, '');
+  const cleanRepo = conf.repo.trim().replace(/^https?:\/\/github\.com\//i, '').replace(/\/+$/, '').replace(/\.git$/, '');
+  if (!/^[a-zA-Z0-9_.-]+\/[a-zA-Z0-9_.-]+$/.test(cleanRepo)) throw Error('저장소는 소유자/저장소명 형식으로 입력하세요. 파일·브랜치 주소는 사용할 수 없습니다.');
   const branch = (conf.branch || 'main').trim();
-  const filePath = 'index.html';
-  const apiUrl = `https://api.github.com/repos/${cleanRepo}/contents/${filePath}?ref=${branch}`;
-
-  let sha = null;
-  try {
-    const checkRes = await fetch(apiUrl, {
-      headers: {
-        'Authorization': `Bearer ${conf.token}`,
-        'Accept': 'application/vnd.github.v3+json'
-      }
-    });
-    if (checkRes.ok) {
-      const checkData = await checkRes.json();
-      sha = checkData.sha;
-    }
-  } catch (e) {}
-
-  msg('GitHub 업로드 중...');
-
-  const bytes = new TextEncoder().encode(docHtml);
-  let bin = '';
-  for (let i = 0; i < bytes.byteLength; i++) { bin += String.fromCharCode(bytes[i]); }
-  const b64Content = btoa(bin);
-
-  const payload = {
-    message: `현장보고 배포 (${$('f-title')?.value || '상황보고'})`,
-    content: b64Content,
-    branch: branch
+  const base = `https://api.github.com/repos/${cleanRepo}`;
+  const headers = {
+    Authorization: `Bearer ${conf.token.trim()}`,
+    Accept: 'application/vnd.github.object+json',
+    'X-GitHub-Api-Version': '2022-11-28'
   };
-  if (sha) payload.sha = sha;
-
-  const res = await fetch(`https://api.github.com/repos/${cleanRepo}/contents/${filePath}`, {
-    method: 'PUT',
-    headers: {
-      'Authorization': `Bearer ${conf.token}`,
-      'Accept': 'application/vnd.github.v3+json',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(payload)
-  });
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw Error('GitHub 배포 실패: ' + (err.message || res.statusText));
+  msg('1/3 · 저장소와 브랜치 확인 중입니다.');
+  // index.html의 404를 새 파일로 해석하기 전에 브랜치 접근부터 확인합니다.
+  const branchRes = await githubRequest(`${base}/branches/${encodeURIComponent(branch)}`, { headers });
+  if (!branchRes.ok) throw await githubError(branchRes, '브랜치 확인');
+  msg('2/3 · 기존 보고서 버전 확인 중입니다.');
+  // 1MB를 초과하는 사진 포함 HTML도 sha를 받을 수 있는 object 응답 형식입니다.
+  const existing = await githubRequest(`${base}/contents/index.html?ref=${encodeURIComponent(branch)}`, { headers });
+  let sha;
+  if (existing.ok) {
+    const data = await existing.json();
+    if (typeof data.sha !== 'string' || !data.sha) throw Error('기존 보고서의 버전 정보를 받지 못해 업로드를 중단했습니다.');
+    sha = data.sha;
+  } else if (existing.status !== 404) {
+    throw await githubError(existing, '기존 보고서 조회');
   }
-  msg('🎉 GitHub Pages 배포 완료! 1분 내 사이트에 반영됩니다.');
+  const bytes = new TextEncoder().encode(docHtml);
+  if (bytes.length > 20 * 1024 * 1024) throw Error('보고서가 20MB를 넘습니다. 사진 수를 줄여 주세요.');
+  let bin = '';
+  for (let i = 0; i < bytes.length; i += 32768) bin += String.fromCharCode(...bytes.subarray(i, i + 32768));
+  const payload = { message: `현장보고 갱신 (${$('f-title')?.value || '상황보고'})`, content: btoa(bin), branch };
+  if (sha) payload.sha = sha;
+  msg('3/3 · GitHub에 보고서를 업로드하고 있습니다.');
+  const res = await githubRequest(`${base}/contents/index.html`, {
+    method: 'PUT', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+  });
+  if (!res.ok) throw await githubError(res, '보고서 업로드');
+  const result = await res.json();
+  msg(`GitHub 저장 완료 (커밋 ${(result.commit?.sha || '').slice(0,7)}). Pages 게시 반영은 아직 확인되지 않았습니다. 저장소 Actions에서 배포 결과를 확인하세요.`);
 }
 
 try {
@@ -466,6 +472,7 @@ $('export').onclick = () => run(async () => {
 
 $('publishGh').onclick = () => run(async () => {
   requireTitle();
+  msg('보고서와 사진을 준비하고 있습니다.');
   const doc = html(await embedded(collect()));
   await publishToGitHub(doc);
 });
