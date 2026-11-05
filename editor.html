@@ -5,60 +5,17 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>현장보고 작성 | 현장대응단</title>
   <link rel="stylesheet" href="editor.css">
-<style>
-  /* 모바일 화면 폭에 맞춘 가로 정렬 및 자동 줄바꿈(wrapping) 처리 */
-  header .wrap { 
-    min-height: 52px; 
-    padding: 8px 12px; 
-    display: flex; 
-    align-items: center; 
-    justify-content: space-between; 
-    flex-wrap: wrap; /* 공간이 부족하면 아래로 떨어지게 하여 잘림 방지 */
-    gap: 8px;
-  }
-  header b { font-size: 15px; margin: 0; }
-  
-  /* 작은 버튼들이 화면 밖으로 나가지 않도록 조정 */
-  .btn-sm { 
-    min-height: 32px !important; 
-    padding: 4px 8px !important; 
-    font-size: 12px !important; 
-    border-radius: 4px; 
-    white-space: nowrap; 
-  }
-
-  /* 상단 도구 버튼들(새 사건 시작 등)이 가로로 스크롤되거나 넘치지 않게 줄바꿈 허용 */
-  .tools {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap !important;
-    margin-bottom: 12px;
-  }
-  .tools button, .tools .button {
-    flex: 1 1 auto; /* 화면 크기에 맞게 버튼 크기 자동 조절 */
-    text-align: center;
-    white-space: nowrap;
-    font-size: 12px !important;
-    padding: 6px 8px !important;
-  }
-
-  /* 보고 구분 라디오 버튼 영역 */
-  .type-selector { 
-    display: flex; 
-    gap: 12px; 
-    margin: 12px 0 16px; 
-    background: var(--canvas); 
-    padding: 10px 14px; 
-    border-radius: 8px; 
-    border: 1px solid var(--border); 
-    align-items: center; 
-  }
-  .type-selector label { font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
-
-  .actions { display: flex; gap: 6px; flex-wrap: wrap; margin: 16px 0; }
-  .actions button { min-height: 38px; padding: 6px 12px; font-size: 14px; flex: 1 1 auto; }
-  .hidden-field { display: none !important; }
-</style>
+  <style>
+    /* 모바일 맞춤 슬림 버튼 & 헤더 스타일 */
+    header .wrap { min-height: 48px; padding: 6px 16px; display: flex; align-items: center; justify-content: space-between; }
+    header b { font-size: 16px; margin: 0; }
+    .btn-sm { min-height: 32px !important; padding: 4px 10px !important; font-size: 13px !important; border-radius: 4px; }
+    .type-selector { display: flex; gap: 8px; margin: 16px 0; background: var(--canvas); padding: 12px; border-radius: 8px; border: 1px solid var(--border); }
+    .type-selector label { font-size: 15px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+    .actions { display: flex; gap: 6px; flex-wrap: wrap; margin: 16px 0; }
+    .actions button { min-height: 38px; padding: 6px 12px; font-size: 14px; flex: 1 1 auto; }
+    .hidden-field { display: none !important; }
+  </style>
 </head>
 <body>
   <a class="skip-link" href="#main">본문 바로가기</a>
@@ -74,16 +31,16 @@
   <main id="main" style="padding: 12px 16px;">
     <h2 class="page-title" style="font-size: 22px; margin: 10px 0 6px;">현장보고 작성</h2>
     
-    <!-- 1. 실화재 / 오인신고 선택 토글 -->
+    <!-- 실화재 / 오인신고 선택 -->
     <div class="type-selector">
-      <span style="font-size:14px; color:var(--fg2); margin-right:8px;">구분:</span>
+      <span style="font-size:14px; color:var(--fg2); margin-right:8px;">보고 구분:</span>
       <label><input type="radio" name="reportType" value="fire" checked> 실화재</label>
-      <label style="margin-left:8px;"><input type="radio" name="reportType" value="false_alarm"> 오인신고</label>
+      <label><input type="radio" name="reportType" value="false_alarm"> 오인신고</label>
     </div>
 
     <div class="tools" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;">
       <button id="new" type="button" class="btn-sm">새 사건 시작</button>
-      <button id="sample" type="button" class="btn-sm">기본 서식 불러오기</button>
+      <button id="sample" type="button" class="btn-sm">샘플 불러오기</button>
       <button id="backup" type="button" class="btn-sm">백업(.json)</button>
       <label class="button btn-sm">불러오기<input id="restore" type="file" accept="application/json,.json" hidden></label>
     </div>
@@ -101,7 +58,7 @@
         <label class="confirm" style="font-size: 14px;"><input id="reviewed" type="checkbox"> 내용 및 개인정보 노출 여부를 확인했습니다.</label>
       </section>
 
-      <!-- 슬림화된 3대 액션 버튼 -->
+      <!-- 슬림화된 액션 버튼 -->
       <div class="actions">
         <button id="preview" type="button" class="primary">미리보기</button>
         <button id="publishGh" type="button" class="primary" style="background:#0F7B3D; border-color:#0F7B3D;">GitHub 즉시배포</button>
