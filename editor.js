@@ -7,7 +7,7 @@ function openGhModal(){
   const saved=JSON.parse(localStorage.getItem(ghKey)||'{}');
   $('ghRepo').value=saved.repo||'hyeonjunyi/Emergency_Report';
   $('ghBranch').value=saved.branch||'main';
-  $('ghToken').value=saved.token||'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';
+  $('ghToken').value=saved.token||'';
   const m=$('ghModal');
   if(m)m.style.display='flex';
 }
