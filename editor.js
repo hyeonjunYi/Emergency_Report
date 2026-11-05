@@ -425,10 +425,18 @@ try {
 
 let saved;
 try { saved = JSON.parse(localStorage.getItem(key)); } catch {}
+
+// 1. 초기 모드(실화재 또는 오인신고) 우선 빌드
+const initialType = saved?.reportType || 'fire';
+setReportType(initialType);
+
+// 2. 데이터 채우기
 if (saved && typeof saved === 'object') {
   fill(saved);
-} else {
+  msg('임시 저장된 내용을 불러왔습니다.');
+} else if (sample) {
   fill(sample);
+  msg('기본 서식을 불러왔습니다.');
 }
 
 $('new').onclick = () => {
