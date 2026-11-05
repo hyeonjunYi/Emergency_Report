@@ -8,7 +8,7 @@ function openGhModal(){
   try { saved=JSON.parse(localStorage.getItem(ghKey)||'{}')||{}; } catch {}
   $('ghRepo').value=saved.repo||'hyeonjunyi/Emergency_Report';
   $('ghBranch').value=saved.branch||'main';
-  $('ghToken').value=saved.token||'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';
+  $('ghToken').value=saved.token||'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';
   const m=$('ghModal');
   if(m)m.style.display='flex';
 }
