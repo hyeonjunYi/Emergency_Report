@@ -7,7 +7,7 @@ function openGhModal(){
   const saved=JSON.parse(localStorage.getItem(ghKey)||'{}');
   $('ghRepo').value=saved.repo||'hyeonjunyi/Emergency_Report';
   $('ghBranch').value=saved.branch||'main';
-  $('ghToken').value=saved.token||'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';
+  $('ghToken').value=saved.token||'';
   const m=$('ghModal');
   if(m)m.style.display='flex';
 }
@@ -39,11 +39,14 @@ function formatKST(dateObj = new Date()) {
   return `${p.year}.${p.month}.${p.day}. ${p.hour}:${p.minute}`;
 }
 
+// 1, 3, 5번 요청 반영: 01 기본정보에 발생시각, 출동지령, 선착대도착, 지휘팀도착, 초진시각, 완진시각 배치
 const fireGroups = [
   ['01 · 기본정보', [
     ['title', '보고서 제목'],
+    ['date', '발생시각'],
     ['dispatch', '출동 지령시각'],
     ['arrival', '선착대 도착시각'],
+    ['commander_arrival', '지휘팀 도착시각'],
     ['knockdown', '초진 시각'],
     ['out', '완진 시각'],
     ['injury', '인명피해 현황'],
@@ -61,6 +64,7 @@ const fireGroups = [
   ]],
   ['03 · 대상 상세 및 초기 현장상황', [
     ['address', '화재장소'],
+    ['kind', '화재분류'],
     ['target_vehicle', '화재대상 및 상세정보 (차종·연료·건물구조 등)', 'textarea'],
     ['situation', '초기 현장 확인사항 및 진압 활동', 'textarea']
   ]],
@@ -87,6 +91,7 @@ const falseAlarmGroups = [
   ]],
   ['03 · 대상 상세 및 초기 현장상황', [
     ['address', '화재장소'],
+    ['kind', '화재분류 (오인신고)'],
     ['target_vehicle', '화재대상 및 상세정보', 'textarea'],
     ['situation', '현장상황 (오인 원인 및 조치내용)', 'textarea']
   ]]
@@ -196,6 +201,7 @@ function setReportType(type) {
   buildForm(type);
 }
 
+// 2번 요청: 새 사건 시작 시각은 현재시각, 출동대 및 상세/상황은 공란("")
 function fresh() {
   const currentTime = formatKST();
   const selectedType = $('reportTypeVal')?.value || 'fire';
@@ -204,8 +210,10 @@ function fresh() {
   const d = {
     reportType: selectedType,
     title: isFalse ? '오인출동 현장상황보고' : '화재 초기 현장상황보고',
+    date: currentTime,
     dispatch: currentTime,
     arrival: currentTime,
+    commander_arrival: currentTime,
     knockdown: isFalse ? '-' : currentTime,
     out: isFalse ? '-' : currentTime,
     updated: currentTime,
@@ -213,6 +221,7 @@ function fresh() {
     author: '현장대응단 소방장 이현준',
     phone: '010-4200-9870',
     status: isFalse ? '상황종료' : '진압 중',
+    kind: '', // 4번 요청: 화재분류 공란
     address: '',
     target_vehicle: '',
     first_crew: '',
@@ -457,6 +466,7 @@ $('preview').onclick = () => run(async () => {
 
 $('close').onclick = () => { $('previewArea').hidden = true; };
 
+// 6번 요청: 개인정보 확인 체크박스 제거에 따른 검증 로직 단순화
 $('export').onclick = () => run(async () => {
   requireTitle();
   const doc = html(await embedded(collect()));
