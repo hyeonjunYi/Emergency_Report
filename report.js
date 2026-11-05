@@ -4,7 +4,7 @@ const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const safePhoto=s=>typeof s==='string'&&(/^(assets\/scene-[1-4]\.jpg)$/.test(s)||/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(s));
 
 function render(d){
-const isFalse = (d.reportType === 'false_alarm') || (d.kind && d.kind.includes('오인'));
+const isFalse = (d.reportType === 'false_alarm');
 const e=k=>esc(d[k]||'-');
 const photos=(d.photos||[]).filter(p=>safePhoto(p.src));
 const pair=(label,key)=>`<dt>${label}</dt><dd>${e(key)}</dd>`;
@@ -29,7 +29,7 @@ if(isFalse){
             <strong style="font-size:15px;">${e('status')}</strong>
           </div>
         </div>
-        <p class="subtitle" style="margin:8px 0 0;font-size:14px;">${e('address')} ｜ ${e('kind')}</p>
+        <p class="subtitle" style="margin:8px 0 0;font-size:14px;">${e('address')}</p>
         <div class="byline" style="margin-top:8px;font-size:13px;"><span>작성자</span><strong>${e('author')}</strong></div>
         <p class="source-note" style="margin-top:6px;">보고 기준 · ${e('updated')}</p>
       </div>
@@ -68,7 +68,6 @@ if(isFalse){
         <h3>출동 개요 및 상황</h3>
         <dl style="margin-bottom:16px;">
           ${pair('화재장소', 'address')}
-          ${pair('화재분류', 'kind')}
           ${pair('대상 및 상세정보', 'target_vehicle')}
         </dl>
         <div style="border-top:1px solid var(--rule);padding-top:12px;">
@@ -76,6 +75,16 @@ if(isFalse){
           <p class="situation" style="white-space:pre-wrap;font-size:15px;margin:0;">${e('situation')}</p>
         </div>
       </section>
+
+      ${d.address && d.address !== '-' ? `
+        <section class="panel" style="margin-top:24px;" aria-label="현장 위치 지도">
+          <p class="eyebrow">위치 지도</p>
+          <h3>발생 현장 위치</h3>
+          <div style="width:100%; height:320px; border-radius:8px; overflow:hidden; border:1px solid var(--border); margin-top:16px;">
+            <iframe width="100%" height="100%" frameborder="0" style="border:0" src="https://maps.google.com/maps?q=${encodeURIComponent(d.address)}&output=embed" allowfullscreen></iframe>
+          </div>
+        </section>
+      `:''}
 
       <footer>
         <div class="signoff" style="font-size:13px;">
@@ -88,7 +97,7 @@ if(isFalse){
   `;
 }
 
-/* === 실화재 레이아웃 (요청 사항 반영 정밀 버전) === */
+/* === 실화재 레이아웃 === */
 return `
   <a class="skip-link" href="#main">본문 바로가기</a>
   <header>
@@ -100,7 +109,7 @@ return `
   </header>
   <main class="wrap" id="main">
     <div class="intro">
-      <p class="eyebrow">화재조사 현장기록 · ${e('date')}</p>
+      <p class="eyebrow">화재조사 현장기록</p>
       <div class="title-row">
         <h2 class="report-title">${e('title')}<br><span>초기 현장상황보고.</span></h2>
         <div class="complete ongoing">
@@ -109,19 +118,17 @@ return `
           <span>초기보고</span>
         </div>
       </div>
-      <p class="subtitle">${e('address')} ｜ ${e('kind')}</p>
+      <p class="subtitle">${e('address')}</p>
       <div class="byline">
         <span>작성자</span><strong>${e('author')}</strong>
       </div>
       <p class="source-note">보고 기준 · ${e('updated')}</p>
     </div>
 
-    <!-- 상단 핵심 지표: 발생시각, 지령, 선착대도착, 지휘팀도착, 초진, 완진 -->
-    <section class="stats" aria-label="출동 및 대응 시각 현황" style="grid-template-columns:repeat(3, 1fr);gap:16px;margin:24px 0 32px;">
-      ${cell('발생 시각','date')}
+    <!-- 상단 핵심 지표: 출동 지령, 선착대 도착, 초진 시각, 완진 시각 -->
+    <section class="stats" aria-label="출동 및 대응 시각 현황" style="grid-template-columns:repeat(4, 1fr);gap:16px;margin:24px 0 32px;">
       ${cell('출동 지령','dispatch')}
       ${cell('선착대 도착','arrival')}
-      ${cell('지휘팀 도착','commander_arrival')}
       ${cell('초진 시각','knockdown')}
       ${cell('완진 시각','out')}
     </section>
@@ -143,7 +150,7 @@ return `
       </section>
     `:'<section class="panel">현장사진 등록 전</section>'}
 
-    <!-- 01. 출동대 현황 (선착대, 추가출동대, 지원출동, 유관기관) -->
+    <!-- 01. 출동대 현황 -->
     <section class="panel crew-highlight-panel" aria-label="출동대 현황">
       <p class="eyebrow">01 · 출동대 현황</p>
       <h3>현장 출동대 및 인력</h3>
@@ -155,14 +162,13 @@ return `
       ${d.agency&&d.agency!=='확인 중'?`<div class="agency-note"><strong>유관기관 공동대응</strong><p>${e('agency')}</p></div>`:''}
     </section>
 
-    <!-- 02. 대상 상세 및 초기 현장상황 (화재대상 + 상세정보 통합) -->
+    <!-- 02. 대상 상세 및 초기 현장상황 -->
     <div class="report-grid">
       <section class="panel">
         <p class="eyebrow">02 · 대상 상세정보</p>
         <h3>화재 대상</h3>
         <dl>
           ${pair('발생장소','address')}
-          ${pair('화재분류','kind')}
           ${pair('대상 및 상세정보','target_vehicle')}
           ${pair('유관기관','agency')}
         </dl>
@@ -188,6 +194,17 @@ return `
       </div>
       <p class="source-note" style="margin-top:12px;">현장 확인 및 조사 진행에 따라 보완 예정.</p>
     </section>
+
+    <!-- 발생 현장 위치 지도 연동 -->
+    ${d.address && d.address !== '-' ? `
+      <section class="panel" style="margin-top:40px;" aria-label="현장 위치 지도">
+        <p class="eyebrow">위치 지도</p>
+        <h3>발생 현장 위치</h3>
+        <div style="width:100%; height:320px; border-radius:8px; overflow:hidden; border:1px solid var(--border); margin-top:16px;">
+          <iframe width="100%" height="100%" frameborder="0" style="border:0" src="https://maps.google.com/maps?q=${encodeURIComponent(d.address)}&output=embed" allowfullscreen></iframe>
+        </div>
+      </section>
+    `:''}
 
     ${photos.length>1?`
       <section class="photo-strip">
