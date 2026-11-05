@@ -243,15 +243,22 @@ window.FieldReport = (() => {
           </p>
         </div>
 
-        <section
-          class="stats"
-          aria-label="출동 및 대응 시각 현황"
-          style="grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:24px 0 32px;"">
-          ${cell('출동 지령', 'dispatch')}
-          ${cell('선착대 도착', 'arrival')}
-          ${cell('초진 시각', 'knockdown')}
-          ${cell('완진 시각', 'out')}
-        </section>
+       <section
+  class="stats"
+  aria-label="출동 및 대응 시각 현황"
+  style="
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:12px;
+    width:100%;
+    min-width:0;
+    margin:24px 0 32px;
+  ">
+  ${cell('출동 지령', 'dispatch')}
+  ${cell('선착대 도착', 'arrival')}
+  ${cell('초진 시각', 'knockdown')}
+  ${cell('완진 시각', 'out')}
+</section>
 
         ${photos.length ? `
           <section
