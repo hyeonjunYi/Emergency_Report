@@ -204,7 +204,7 @@ function fresh() {
 
   const d = {
     reportType: selectedType,
-    title: isFalse ? '오인출동 현장상황보고' : '', // 보고서 제목 공란
+    title: '', // 보고서 제목 공란
     dispatch: currentTime,
     arrival: currentTime,
     knockdown: isFalse ? '-' : currentTime,      // 초진 시각 현재시각 기본 세팅
@@ -235,13 +235,13 @@ function fresh() {
 if($('btnTypeFire')) $('btnTypeFire').onclick = () => {
   const cur = collect();
   cur.reportType = 'fire';
-  if(cur.title.includes('오인출동')) { cur.title = '화재 초기 현장상황보고'; cur.status = '진압 중'; }
+  if(cur.title.includes('오인출동')) { cur.title = ''; cur.status = '진압 중'; }
   fill(cur);
 };
 if($('btnTypeFalse')) $('btnTypeFalse').onclick = () => {
   const cur = collect();
   cur.reportType = 'false_alarm';
-  if(!cur.title || cur.title.includes('화재 초기')) { cur.title = '오인출동 현장상황보고'; cur.status = '상황종료'; cur.kind = '오인신고'; }
+  if(!cur.title || cur.title.includes('화재 초기')) { cur.title = ''; cur.status = '상황종료'; cur.kind = '오인신고'; }
   fill(cur);
 };
 
