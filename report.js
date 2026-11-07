@@ -102,7 +102,7 @@ window.FieldReport = (() => {
       </section>
     ` : (isFalse ? '' : '<section class="panel">현장사진 등록 전</section>');
 
-    /* 공통 푸터 */
+/* 공통 푸터 */
     const footerHtml = `
       <footer>
         <div class="signoff" style="${isFalse ? 'font-size:13px;' : ''}">
@@ -112,7 +112,7 @@ window.FieldReport = (() => {
             <a href="tel:${e('phone')}" class="phone-link" style="${isFalse ? 'padding:2px 8px;font-size:12px;' : ''}">📞 ${e('phone')}</a>
           </span>
         </div>
-        <p style="${isFalse ? 'font-size:11px;margin-top:6px;' : ''}">${isFalse ? '오인출동 현장상황보고' : '화재조사 초기 현장상황보고'} · 보고 기준 ${formatInlineTime(d.updated)}</p>
+        <p style="${isFalse ? 'font-size:11px;margin-top:6px;' : 'font-size:13px;color:inherit;margin:12px 0 0;'};">${isFalse ? '오인출동 현장상황보고' : '화재조사 초기 현장상황보고'} · 보고 기준 ${formatInlineTime(d.updated)}</p>
       </footer>
     `;
 
