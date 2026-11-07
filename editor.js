@@ -204,11 +204,11 @@ function fresh() {
 
   const d = {
     reportType: selectedType,
-    title: isFalse ? '오인출동 현장상황보고' : '화재 초기 현장상황보고',
+    title: isFalse ? '오인출동 현장상황보고' : '', // 보고서 제목 공란
     dispatch: currentTime,
     arrival: currentTime,
-    knockdown: isFalse ? '-' : currentTime,
-    out: isFalse ? '-' : currentTime,
+    knockdown: isFalse ? '-' : currentTime,      // 초진 시각 현재시각 기본 세팅
+    out: isFalse ? '-' : currentTime,            // 완진 시각 현재시각 기본 세팅
     updated: currentTime,
     unit: '계룡소방서 현장대응단',
     author: '현장대응단 소방장 이현준',
@@ -222,11 +222,11 @@ function fresh() {
     agency: '',
     crew_single: '',
     situation: '',
-    injury: isFalse ? '없음' : '',
+    injury: isFalse ? '없음' : '확인 중',
     damage: isFalse ? '없음' : '',
-    loss: isFalse ? '0원' : '',
-    origin: isFalse ? '-' : '',
-    cause: isFalse ? '' : '',
+    loss: isFalse ? '0원' : '산정 중',            // 재산피해 추정액 기본값: 산정 중
+    origin: isFalse ? '-' : '조사 중',           // 발화지점 기본값: 조사 중
+    cause: isFalse ? '-' : '조사 중',            // 화재원인 기본값: 조사 중
     photos: []
   };
   fill(d);
