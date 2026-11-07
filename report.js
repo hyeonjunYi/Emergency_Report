@@ -29,7 +29,7 @@ window.FieldReport = (() => {
     const cell = (label, key) =>
       `<div><small>${label}</small><strong>${e(key)}</strong></div>`;
 
-/* 발생장소 바로 다음에 표시할 지도 및 바로가기 링크 */
+    /* 발생장소 바로 다음에 표시할 지도 및 바로가기 링크 */
     const locationMap = d.address && d.address !== '-' ? `
       <dt>현장 위치</dt>
       <dd style="min-width:0;">
@@ -60,7 +60,10 @@ window.FieldReport = (() => {
           <div
             class="wrap"
             style="min-height:48px;padding:6px 16px;display:flex;align-items:center;justify-content:space-between;">
-            <b style="font-size:16px;">${e('unit')}</b>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <b style="font-size:16px;">${e('unit')}</b>
+              <span class="header-badge draft-label" style="font-size:12px;background:rgba(255,255,255,0.18);color:#fff;padding:3px 10px;border-radius:12px;font-weight:600;">현장상황보고</span>
+            </div>
             <button
               onclick="window.print()"
               style="min-height:30px;padding:2px 8px;font-size:12px;">
@@ -200,15 +203,22 @@ window.FieldReport = (() => {
       <a class="skip-link" href="#main">본문 바로가기</a>
 
       <header>
-        <div class="wrap">
-          <b>${e('unit')}</b>
-          <span class="draft-label">초기 현장상황보고</span>
-          <button onclick="window.print()">인쇄 / PDF</button>
+        <div
+          class="wrap"
+          style="min-height:48px;padding:6px 16px;display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <b style="font-size:16px;">${e('unit')}</b>
+            <span class="header-badge draft-label" style="font-size:12px;background:rgba(255,255,255,0.18);color:#fff;padding:3px 10px;border-radius:12px;font-weight:600;">현장상황보고</span>
+          </div>
+          <button
+            onclick="window.print()"
+            style="min-height:30px;padding:2px 8px;font-size:12px;">
+            인쇄 / PDF
+          </button>
         </div>
       </header>
 
       <main class="wrap" id="main">
-        <!-- 1. 보고서 제목 영역 (주소, 작성자, 보고기준 제거) -->
         <div class="intro">
           <p class="eyebrow">화재조사 현장기록</p>
 
@@ -226,7 +236,6 @@ window.FieldReport = (() => {
           </div>
         </div>
 
-        <!-- 2. 출동 지령 · 선착대 도착 -->
         <section
           class="stats"
           aria-label="출동 시각 현황"
@@ -235,7 +244,6 @@ window.FieldReport = (() => {
           ${cell('선착대 도착', 'arrival')}
         </section>
 
-        <!-- 3. 현장기록사진 슬라이드 -->
         ${photos.length ? `
           <section
             class="gallery"
@@ -268,7 +276,6 @@ window.FieldReport = (() => {
           <section class="panel">현장사진 등록 전</section>
         `}
 
-        <!-- 4. 초진시각 · 완진시각 -->
         <section
           class="stats"
           aria-label="화재 진압 시각 현황"
@@ -277,7 +284,6 @@ window.FieldReport = (() => {
           ${cell('완진 시각', 'out')}
         </section>
 
-        <!-- 5. 01 출동대 현황 -->
         <section
           class="panel crew-highlight-panel"
           aria-label="출동대 현황">
@@ -309,7 +315,6 @@ window.FieldReport = (() => {
           ` : ''}
         </section>
 
-        <!-- 6. 02 대상 상세정보 (발생장소, 지도, 대상 및 상세정보) & 03 초기 현장상황 -->
         <div class="report-grid">
           <section class="panel">
             <p class="eyebrow">02 · 대상 상세정보</p>
@@ -331,7 +336,6 @@ window.FieldReport = (() => {
           </section>
         </div>
 
-        <!-- 7. 피해 및 조사현황 -->
         <section class="panel damage-panel">
           <p class="eyebrow">피해 및 조사</p>
           <h3>피해 및 조사현황</h3>
@@ -349,7 +353,6 @@ window.FieldReport = (() => {
           </p>
         </section>
 
-        <!-- 8. 추가 현장사진 스트립 -->
         ${photos.length > 1 ? `
           <section class="photo-strip">
             ${photos.slice(1).map(p => `
@@ -361,7 +364,6 @@ window.FieldReport = (() => {
           </section>
         ` : ''}
 
-        <!-- 9. 푸터 (소속, 작성자 연락처, 보고 기준시각) -->
         <footer>
           <div class="signoff">
             <b>${e('unit')}</b>
