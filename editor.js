@@ -198,39 +198,38 @@ function setReportType(type) {
 }
 
 function fresh() {
-  const currentTime = formatKST();
-  const selectedType = $('reportTypeVal')?.value || 'fire';
-  const isFalse = (selectedType === 'false_alarm');
+    const currentTime = formatKST();
+    const selectedType = $('reportTypeVal')?.value || 'fire';
+    const isFalse = (selectedType === 'false_alarm');
 
-  const d = {
-    reportType: selectedType,
-    title: '',                                   // 화재/오인출동 구분 없이 제목 공란
-    dispatch: currentTime,
-    arrival: currentTime,
-    knockdown: isFalse ? '-' : currentTime,      // 초진 시각 현재시각 기본 세팅
-    out: isFalse ? '-' : currentTime,            // 완진 시각 현재시각 기본 세팅
-    updated: currentTime,
-    unit: '계룡소방서 현장대응단',
-    author: '현장대응단 소방장 이현준',
-    phone: '010-4200-9870',
-    status: isFalse ? '상황종료' : '진압 중',
-    address: '',
-    target_vehicle: '',
-    first_crew: '',
-    extra_crew: '',
-    support_crew: '',
-    agency: '',
-    crew_single: '',
-    situation: '',
-    injury: isFalse ? '없음' : '확인 중',
-    damage: isFalse ? '없음' : '',
-    loss: isFalse ? '0원' : '산정 중',            // 재산피해 추정액: 산정 중
-    origin: isFalse ? '-' : '조사 중',           // 발화지점: 조사 중
-    cause: isFalse ? '-' : '조사 중',            // 화재원인: 조사 중
-    photos: []
-  };
-  fill(d);
-}
+    fill({
+      reportType: selectedType,
+      title: '',                                   // 제목 공란
+      dispatch: currentTime,
+      arrival: currentTime,
+      knockdown: isFalse ? '-' : currentTime,      // 초진 시각 현재시각
+      out: isFalse ? '-' : currentTime,            // 완진 시각 현재시각
+      updated: currentTime,
+      unit: '계룡소방서 현장대응단',
+      author: '현장대응단 소방장 이현준',
+      phone: '010-4200-9870',
+      status: isFalse ? '상황종료' : '진압 중',
+      address: '',
+      target_vehicle: '',
+      first_crew: '',
+      extra_crew: '',
+      support_crew: '',
+      agency: '',
+      crew_single: '',
+      situation: '',
+      injury: isFalse ? '없음' : '확인 중',
+      damage: isFalse ? '없음' : '',
+      loss: isFalse ? '0원' : '산정 중',            // 재산피해 산정 중
+      origin: isFalse ? '-' : '조사 중',           // 발화지점 조사 중
+      cause: isFalse ? '-' : '조사 중',            // 화재원인 조사 중
+      photos: []
+    });
+  }
 if($('btnTypeFire')) $('btnTypeFire').onclick = () => {
   const cur = collect();
   cur.reportType = 'fire';
