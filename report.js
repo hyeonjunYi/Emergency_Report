@@ -29,7 +29,7 @@ window.FieldReport = (() => {
     const cell = (label, key) =>
       `<div><small>${label}</small><strong>${e(key)}</strong></div>`;
 
-    /* 발생장소 바로 다음에 표시할 지도 */
+/* 발생장소 바로 다음에 표시할 지도 및 바로가기 링크 */
     const locationMap = d.address && d.address !== '-' ? `
       <dt>현장 위치</dt>
       <dd style="min-width:0;">
@@ -42,6 +42,12 @@ window.FieldReport = (() => {
           loading="lazy"
           allowfullscreen>
         </iframe>
+        <div class="map-links" style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:13px;">
+          <span style="color:var(--fg2);font-weight:500;">지도 바로가기 :</span>
+          <a href="https://map.kakao.com/link/search/${encodeURIComponent(d.address)}" target="_blank" rel="noopener" style="color:var(--link);font-weight:700;text-decoration:none;">카카오맵</a>
+          <span style="color:var(--border);">·</span>
+          <a href="https://map.naver.com/v5/search/${encodeURIComponent(d.address)}" target="_blank" rel="noopener" style="color:var(--link);font-weight:700;text-decoration:none;">네이버 지도</a>
+        </div>
       </dd>
     ` : '';
 
