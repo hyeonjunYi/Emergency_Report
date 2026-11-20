@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>현장보고 작성 | 현장대응단</title>
-  <link rel="stylesheet" href="editor.css">
+  <link rel="stylesheet" href="editor.css?v=20261120">
   <style>
     header .wrap { min-height: 48px; padding: 6px 16px; display: flex; align-items: center; justify-content: space-between; }
     header b { font-size: 16px; margin: 0; }
@@ -29,15 +29,15 @@
   <main id="main" style="padding: 12px 16px;">
     <h2 class="page-title" style="font-size: 22px; margin: 10px 0 6px;">현장보고 작성</h2>
     
-    <!-- 화재 / 오인신고 전환 버튼 -->
-    <div class="type-selector" style="display:flex; gap:10px; margin:12px 0 16px; background:var(--canvas); padding:10px 14px; border-radius:8px; border:1px solid var(--border); align-items:center;">
-      <span style="font-size:14px; color:var(--fg2); font-weight:600; white-space:nowrap;">보고 구분:</span>
-      <div style="display:flex; gap:8px; flex:1;">
-        <button type="button" id="btnTypeFire" style="flex:1; min-height:38px; font-weight:700; font-size:14px; border-radius:6px; cursor:pointer; border:1px solid var(--primary); background:var(--primary); color:#fff;">🔥 화재</button>
-        <button type="button" id="btnTypeFalse" style="flex:1; min-height:38px; font-weight:700; font-size:14px; border-radius:6px; cursor:pointer; border:1px solid var(--border); background:var(--muted); color:var(--fg);">🚨 오인신고</button>
-      </div>
+    <div class="type-selector" role="group" aria-label="보고 구분">
+      <span>보고 구분</span>
+      <button type="button" id="btnTypeFire">화재</button>
+      <button type="button" id="btnTypeFalse">오인신고</button>
+      <button type="button" id="btnTypeTrend">동향보고</button>
+      <button type="button" id="btnTypeNotice">경조사알림</button>
       <input type="hidden" id="reportTypeVal" value="fire">
     </div>
+    <div id="trendOptions" hidden><label for="trendKind">동향보고 서식</label><select id="trendKind"><option value="vehicle">소방차량 사고발생</option><option value="injury">직원 부상</option></select></div>
 
     <!-- 2번 요청: 연동 버튼이 백업, 불러오기 다음에 배치 -->
     <div class="tools" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;">
@@ -45,14 +45,14 @@
       <button id="sample" type="button" class="btn-sm">기본 서식 불러오기</button>
       <button id="backup" type="button" class="btn-sm">백업(.json)</button>
       <label class="button btn-sm">불러오기<input id="restore" type="file" accept="application/json,.json" hidden></label>
-      <button id="ghConfigBtn" type="button" class="btn-sm" style="border-color:var(--primary);color:var(--primary);font-weight:600">⚙️ 연동설정</button>
+      <button id="ghConfigBtn" type="button" class="btn-sm" style="border-color:var(--primary);color:var(--primary);font-weight:600">연동설정</button>
     </div>
 
     <form id="form">
       <div id="fields"></div>
 
       <section style="margin: 20px 0; padding: 16px;">
-        <h3 style="font-size: 16px; margin: 0 0 8px;">현장기록사진 (최대 8장)</h3>
+        <h3 style="font-size: 16px; margin: 0 0 8px;">현장·관련 사진 (최대 8장)</h3>
         <label class="button primary btn-sm">사진 선택<input id="photoInput" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden></label>
         <div id="photos" style="margin-top: 10px;"></div>
       </section>
@@ -93,7 +93,7 @@
       </div>
     </div>
   </main>
-  <script src="report.js"></script>
-  <script src="editor.js?v=20261105-fix1"></script>
+  <script src="report.js?v=20261120"></script>
+  <script src="editor.js?v=20261120"></script>
 </body>
 </html>

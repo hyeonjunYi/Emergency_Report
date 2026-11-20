@@ -93,9 +93,17 @@ const falseAlarmGroups = [
   ]]
 ];
 
+const commonFields = [['title','보고서 제목'],['updated','보고 기준시각'],['unit','소속 기관'],['author','작성자 성명/직급'],['phone','작성자 연락처']];
+const trendBase = [['01 · 기본정보', [...commonFields,['manager','센터장 / 책임자 및 연락처'],['summary','보고 요지','textarea']]], ['02 · 사고 개요', [['occurred','발생일시'],['address','발생장소']]]];
+const vehicleGroups = [...trendBase, ['03 · 사고 및 피해', [['vehicle','사고차량'],['driver','운전자'],['accident','사고내용','textarea'],['humanDamage','인명피해','textarea'],['vehicleDamage','차량피해','textarea'],['otherDamage','기타피해','textarea']]], ['04 · 경과 및 계획', [['timeline','시간대별 상황 (한 줄에 시각 | 내용)','textarea'],['future','향후계획 (수리 일정·운행 가능 여부 등)','textarea']]]];
+const injuryGroups = [...trendBase, ['03 · 부상 및 조치', [['subject','대상자 (소속·직급·성명)'],['accident','사고내용','textarea'],['injuryDetail','부상현황','textarea'],['measures','조치사항','textarea']]], ['04 · 경과 및 계획', [['timeline','시간대별 상황 (한 줄에 시각 | 내용)','textarea'],['future','향후계획','textarea']]]];
+const noticeGroups = [['01 · 알림 기본정보', [...commonFields,['noticeText','알림 본문 (고인·관계·연령 등)','textarea']]], ['02 · 일정 및 장소', [['eventTime','일시'],['venue','빈소 / 행사장'],['address','장소 주소 (지도 표시)'],['funeralTime','발인'],['burial','장지'],['contact','연락처','textarea']]], ['03 · 마음 전하실 곳 (선택)', [['bank','은행'],['account','계좌번호'],['holder','예금주']]]];
+const groupsFor = type => type === 'trend' ? ($('trendKind').value === 'injury' ? injuryGroups : vehicleGroups) : type === 'notice' ? noticeGroups : type === 'false_alarm' ? falseAlarmGroups : fireGroups;
+
 let allFieldNames = Array.from(new Set([
   ...fireGroups.flatMap(g => g[1].map(f => f[0])),
-  ...falseAlarmGroups.flatMap(g => g[1].map(f => f[0]))
+  ...falseAlarmGroups.flatMap(g => g[1].map(f => f[0])),
+  ...[...vehicleGroups,...injuryGroups,...noticeGroups].flatMap(g=>g[1].map(f=>f[0]))
 ]));
 
 let photos = [], sample, css, reportCode, busy = false;
@@ -104,7 +112,7 @@ const msg = t => { $('message').textContent = t; $('message').scrollIntoView({bl
 function buildForm(type) {
   const root = $('fields');
   root.replaceChildren();
-  const currentGroups = (type === 'false_alarm') ? falseAlarmGroups : fireGroups;
+  const currentGroups = groupsFor(type);
   
   currentGroups.forEach(([title, fields]) => {
     const sec = document.createElement('section');
@@ -123,6 +131,7 @@ function buildForm(type) {
       l.textContent = label;
       const input = document.createElement(type === 'textarea' ? 'textarea' : 'input');
       input.id = 'f-' + name;
+      if(name === 'timeline') input.placeholder = '09:00 | 사고 발생\n09:10 | 현장 확인 및 조치';
       input.style.cssText = 'width: 100%; min-height: ' + (type === 'textarea' ? '64px' : '36px') + '; margin-top: 4px; padding: 6px 10px; font-size: 14px;';
       input.oninput = changed;
       l.append(input);
@@ -144,6 +153,7 @@ function collect() {
   const selectedType = $('reportTypeVal')?.value || 'fire';
   const data = {
     reportType: selectedType,
+    trendKind: $('trendKind').value,
     photos: photos.map(p => ({ ...p }))
   };
   allFieldNames.forEach(k => {
@@ -155,6 +165,7 @@ function collect() {
 function fill(d) {
   window._formData = { ...d };
   const type = d.reportType || ((d.kind && d.kind.includes('오인')) ? 'false_alarm' : 'fire');
+  $('trendKind').value = d.trendKind === 'injury' ? 'injury' : 'vehicle';
   setReportType(type);
 
   allFieldNames.forEach(k => {
@@ -174,25 +185,13 @@ function fill(d) {
 
 function setReportType(type) {
   $('reportTypeVal').value = type;
-  const isFalse = (type === 'false_alarm');
-  const btnFire = $('btnTypeFire');
-  const btnFalse = $('btnTypeFalse');
-  if(btnFire && btnFalse) {
-    if(isFalse) {
-      btnFalse.style.background = 'var(--primary)';
-      btnFalse.style.color = '#fff';
-      btnFalse.style.borderColor = 'var(--primary)';
-      btnFire.style.background = 'var(--muted)';
-      btnFire.style.color = 'var(--fg)';
-      btnFire.style.borderColor = 'var(--border)';
-    } else {
-      btnFire.style.background = 'var(--primary)';
-      btnFire.style.color = '#fff';
-      btnFire.style.borderColor = 'var(--primary)';
-      btnFalse.style.background = 'var(--muted)';
-      btnFalse.style.color = 'var(--fg)';
-      btnFalse.style.borderColor = 'var(--border)';
-    }
+  $('trendOptions').hidden = type !== 'trend';
+  for (const [id,value] of [['btnTypeFire','fire'],['btnTypeFalse','false_alarm'],['btnTypeTrend','trend'],['btnTypeNotice','notice']]) {
+    const btn=$(id), active=type===value;
+    btn.setAttribute('aria-pressed', String(active));
+    btn.style.background=active?'var(--primary)':'var(--canvas)';
+    btn.style.color=active?'#fff':'var(--fg)';
+    btn.style.borderColor=active?'var(--primary)':'var(--border)';
   }
   buildForm(type);
 }
@@ -204,7 +203,8 @@ function fresh() {
 
     fill({
       reportType: selectedType,
-      title: '',                                   // 제목 공란
+      trendKind: $('trendKind').value,
+      title: selectedType === 'trend' ? ($('trendKind').value === 'injury' ? '직원 부상에 따른 동향보고' : '소방차량 사고발생 동향보고') : selectedType === 'notice' ? '부고 알림' : '',                                   // 제목 공란
       dispatch: currentTime,
       arrival: currentTime,
       knockdown: isFalse ? '-' : currentTime,      // 초진 시각 현재시각
@@ -230,17 +230,20 @@ function fresh() {
       photos: []
     });
   }
-if($('btnTypeFire')) $('btnTypeFire').onclick = () => {
-  const cur = collect();
-  cur.reportType = 'fire';
-  if(cur.title.includes('오인출동')) { cur.title = ''; cur.status = '진압 중'; }
-  fill(cur);
-};
-if($('btnTypeFalse')) $('btnTypeFalse').onclick = () => {
-  const cur = collect();
-  cur.reportType = 'false_alarm';
-  if(!cur.title || cur.title.includes('화재 초기')) { cur.title = ''; cur.status = '상황종료'; cur.kind = '오인신고'; }
-  fill(cur);
+const drafts = {};
+function switchType(type, kind) {
+  const cur=collect();
+  drafts[cur.reportType+':'+cur.trendKind]=cur;
+  const id=type+':'+(kind||cur.trendKind);
+  if(drafts[id]) fill(drafts[id]);
+  else { $('reportTypeVal').value=type; if(kind) $('trendKind').value=kind; fresh(); }
+}
+for (const [id,type] of [['btnTypeFire','fire'],['btnTypeFalse','false_alarm'],['btnTypeTrend','trend'],['btnTypeNotice','notice']]) $(id).onclick=()=>switchType(type);
+$('trendKind').onchange=()=> {
+  const kind=$('trendKind').value;
+  // Save the previous subtype before constructing the next form.
+  $('trendKind').value=window._formData?.trendKind==='injury'?'injury':'vehicle';
+  switchType('trend',kind);
 };
 
 function draw() {
@@ -323,7 +326,7 @@ async function embedded(d) {
 function html(d) {
   d.updated = formatKST();
   const json = JSON.stringify(d).replace(/</g, '\\u003c');
-  return '<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + (d.title || '현장상황보고') + '</title><style>' + css + '</style></head><body><div id="report"></div><script>' + reportCode + '\nFieldReport.mount(' + json + ');<\/script></body></html>';
+  return '<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + String(d.title || '현장상황보고').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])) + '</title><style>' + css + '</style></head><body><div id="report"></div><script>' + reportCode + '\nFieldReport.mount(' + json + ');<\/script></body></html>';
 }
 
 function requireTitle() {
@@ -410,7 +413,7 @@ async function publishToGitHub(docHtml) {
 
 try {
   [sample, css, reportCode] = await Promise.all(['default.json', 'style.css', 'report.js'].map(async (u, i) => {
-    const r = await fetch(u);
+    const r = await fetch(u, {cache:'no-store'});
     if (!r.ok) throw Error('리소스를 불러오지 못했습니다.');
     return i === 0 ? r.json() : r.text();
   }));
@@ -433,7 +436,7 @@ $('new').onclick = () => {
 
 $('sample').onclick = () => {
   if (confirm('기본 샘플 서식을 불러올까요?')) {
-    fill(sample);
+    fresh();
     msg('샘플 서식을 불러왔습니다.');
   }
 };
@@ -476,7 +479,7 @@ $('publishGh').onclick = () => run(async () => {
 });
 
 $('backup').onclick = () => run(async () => {
-  download(JSON.stringify(await embedded(collect()), null, 2), 'application/json', 'fire-draft.json');
+  download(JSON.stringify(await embedded(collect()), null, 2), 'application/json', 'report-draft.json');
   msg('초안 백업이 저장되었습니다.');
 });
 
@@ -484,6 +487,7 @@ $('restore').onchange = () => run(async () => {
   const f = $('restore').files[0];
   if (!f) return;
   const d = JSON.parse(await f.text());
+  if (!d || typeof d !== 'object' || Array.isArray(d) || (d.reportType && !['fire','false_alarm','trend','notice'].includes(d.reportType))) throw Error('지원하는 보고서 백업 파일이 아닙니다.');
   fill(d);
   $('restore').value = '';
   msg('초안을 불러왔습니다.');
